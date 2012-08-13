@@ -78,6 +78,19 @@ class Manager
 #      (cb) => @__exit entry, cb
 #    ], ->
 #      @current = entry.state
+
+    if @_current
+      @_current.active = false
+      parent = @_current
+      while parent
+        parent.active = false
+        parent = parent.parent
+
+    parent = entry.parent
+    while parent
+      parent.active = true
+      parent = parent.parent
+
     entry.active = true
     @_current = entry
     @
@@ -95,8 +108,6 @@ class Manager
 
   _pushEntry: (name, parent, state, trans) ->
     entry =
-      init: false
-      active: false
       name: name
       state: state
       trans: trans
@@ -105,6 +116,7 @@ class Manager
 
     @_states[name] = entry
     entry.parent.stack[name] = entry if parent
+    entry
 
   # ## *_enter*
   #
