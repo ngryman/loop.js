@@ -1,0 +1,12 @@
+# npm
+node_modules/
+npm-debug.log
+
+# idea
+*.iml
+*.ipr
+*.iws
+idea/
+
+# project
+sandbox/
