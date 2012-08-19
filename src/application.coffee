@@ -43,39 +43,39 @@ class Application extends Manager
     @
 
   abort: ->
-    Application.cancelAnimationFrame @_frameId
+    window.cancelAnimationFrame @_frameId
 
   _loop: (time) ->
-    @_frameId = Application.requestAnimationFrame (time) => @_loop(time)
+    @_frameId = window.requestAnimationFrame (time) => @_loop(time)
     @fire 'tick', time
     return
 
-  @requestAnimationFrame:
-    window.webkitRequestAnimationFrame or
-    window.mozRequestAnimationFrame    or
-    window.oRequestAnimationFrame      or
-    window.msRequestAnimationFrame     or
-    (callback) ->
-      window.setTimeout callback, 1000 / 60
+window.requestAnimationFrame or=
+  window.webkitRequestAnimationFrame or
+  window.mozRequestAnimationFrame    or
+  window.oRequestAnimationFrame      or
+  window.msRequestAnimationFrame     or
+  (callback) ->
+    window.setTimeout callback, 1000 / 60, 1000 / 60
 
-  @cancelAnimationFrame:
-    window.webkitCancelRequestAnimationFrame or
-    window.mozCancelRequestAnimationFrame    or
-    window.oCancelRequestAnimationFrame      or
-    window.msCancelRequestAnimationFrame     or
-    (id) ->
-      clearTimeout id
+window.cancelAnimationFrame or=
+  window.webkitCancelRequestAnimationFrame or
+  window.mozCancelRequestAnimationFrame    or
+  window.oCancelRequestAnimationFrame      or
+  window.msCancelRequestAnimationFrame     or
+  (id) ->
+    window.clearTimeout id
 
-  @performance: (->
-    perf = window.performance or {}
-    perf.now or=
-      perf.webkitNow or
-      perf.mozNow    or
-      perf.msNow     or
-      perf.oNow      or
-      ->
-        Date.now()
-  )()
+window.performance = (->
+  perf = window.performance or {}
+  perf.now or=
+    perf.webkitNow or
+    perf.mozNow    or
+    perf.msNow     or
+    perf.oNow      or
+    ->
+      Date.now()
+)()
 
 # **exports**
 module.exports.Application = Application

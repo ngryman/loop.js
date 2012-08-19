@@ -56,43 +56,59 @@ class Manager
     name = names.shift()
     root = name
 
-    parent = @_pushEntry name, null, state ? new State, trans[0]
+    # TODO: from child to parent
+    # for each state, add to states, link to the previous one child
+    # if a state already exist, just link to the previous one child
+    parent = @_pushEntry root, null, state, trans[0]
     while names.length
       name = name + @_options.separator + names.shift()
+      break if @_states[name]?
       parent = @_pushEntry name, parent, new State, trans[0]
 
-    @_launchEntry = @_launchEntry ? @_states[name]
+    @_launchEntry = @_launchEntry ? @_states[root]
     @
 
   # ## *change*
   #
   # **given** a state name<br>
+  # **and** a optional callback<br>
   # **then** switch the current state, if it exists, to the new one.<br>
   # if transitions are attached to the states, they are applyied.
 
-  change: (name) ->
-    entry = @_states[name]
-
+  change: (name, callback) ->
 #    async.parallel [
 #      (cb) => @_enter entry, cb
 #      (cb) => @__exit entry, cb
 #    ], ->
 #      @current = entry.state
 
-    if @_current
-      @_current.active = false
-      parent = @_current
-      while parent
-        parent.active = false
-        parent = parent.parent
+    toexit = []
+    if @_current?
+      e = @_current
+      while e?
+        toexit.push e
+        e = e.parent
+      toexit.reverse()
 
-    parent = entry.parent
-    while parent
-      parent.active = true
-      parent = parent.parent
+    toenter = []
+    e = @_states[name]
+    while e?
+      toenter.push e
+      e = e.parent
+    toenter.reverse()
 
-    entry.active = true
-    @_current = entry
+    if toexit.length
+      while toenter[0].name == toexit[0].name
+        toenter.shift()
+        toexit.shift()
+
+      e.active = false for e in toexit
+
+    e.active = true for e in toenter
+    @_current = toenter[toenter.length - 1]
+
+    callback?()
+
     @
 
   # ## *fire*
@@ -107,9 +123,11 @@ class Manager
   # - - - - - - - - -
 
   _pushEntry: (name, parent, state, trans) ->
+    return @_states[name] if @_states[name]?
+
     entry =
       name: name
-      state: state
+      state: state or new State
       trans: trans
       parent: parent
       stack: {}

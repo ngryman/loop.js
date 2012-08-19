@@ -37,6 +37,16 @@ class State
   #
   exit: ->
 
+  # ## *focus*
+  #
+  #
+  focus: ->
+
+  # ## *blur*
+  #
+  #
+  blur: ->
+
   # ## *pause*
   #
   #
