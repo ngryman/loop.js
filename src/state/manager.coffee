@@ -1,3 +1,4 @@
+async = require 'async'
 {State} = require '../state'
 {Transition} = require '../transition'
 
@@ -83,6 +84,9 @@ class Manager
 #      @current = entry.state
 
     toexit = []
+    toenter = []
+    tochange = []
+
     if @_current?
       e = @_current
       while e?
@@ -90,24 +94,25 @@ class Manager
         e = e.parent
       toexit.reverse()
 
-    toenter = []
     e = @_states[name]
     while e?
       toenter.push e
       e = e.parent
     toenter.reverse()
 
-    if toexit.length
-      while toenter[0].name == toexit[0].name
+    if toexit.length > 0
+      while toenter[0] is toexit[0]
         toenter.shift()
         toexit.shift()
+      for e in toexit
+        tochange.push do (e) => (cb) => @_exit e, cb
 
-      e.active = false for e in toexit
+    for e in toenter
+      tochange.push do (e) => (cb) => @_enter e, cb
 
-    e.active = true for e in toenter
-    @_current = toenter[toenter.length - 1]
-
-    callback?()
+    async.parallel tochange, =>
+      @_current = toenter[toenter.length - 1]
+      callback?()
 
     @
 
@@ -143,23 +148,31 @@ class Manager
   _enter: (entry, cb) ->
     # initialize if this is the first time state is entered
     unless entry.init
-      entry.state.init?()
       entry.init = true
+      entry.state.init()
 
     cbw = ->
-      state.enter()
+      entry.active = true
+      entry.state.enter()
       cb()
 
     # launch transition if their is one or enter directly
-    if entry.enterTrans?
-      entry.enterTrans cbw
-    else
-      cbw()
+#    if entry.trans?
+#      entry.trans cbw
+#    else
+    cbw()
 
-  # states stack
-#  _stack: []
-  # reference to states stack, used in *push* and *pop*
-#  __children: Manager::_states
+  _exit: (entry, cb) ->
+    cbw = ->
+      entry.active = false
+      entry.state.exit()
+      cb()
+
+    # launch transition if their is one or enter directly
+#    if entry.trans?
+#      entry.trans cbw
+#    else
+    cbw()
 
 # **exports**
 module.exports.Manager = Manager

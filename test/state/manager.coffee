@@ -134,11 +134,10 @@ describe 'Manager', ->
         shared._states['love:loopjs'].should.have.property 'active', false
         done()
 
-    xit 'should call init event when the first time', (done) ->
+    it 'should call init event when the first time', (done) ->
       manager = new Manager
       manager.push 'test'
       manager._states.test.state.init = ->
-        console.log manager._states.test
         manager._states.test.init.should.be.true
         done()
       manager.change 'test'
@@ -147,10 +146,10 @@ describe 'Manager', ->
     it 'should fire current state event given a event name', (done) ->
       manager = new Manager
       state = new State
-      state.enter = -> done()
+      state.pause = -> done()
       manager.push 'test', state
       manager.change 'test'
-      manager.fire 'enter'
+      manager.fire 'pause'
 
     it 'should do nothing when there is no current state', ->
       manager = new Manager
@@ -160,12 +159,12 @@ describe 'Manager', ->
     it 'should fire current state with itself as context', (done) ->
       manager = new Manager
       state = new State
-      state.enter = ->
+      state.pause = ->
         @.should.eql state
         done()
       manager.push 'test', state
       manager.change 'test'
-      manager.fire 'enter'
+      manager.fire 'pause'
 
     it 'should do nothing when the event is unknown', ->
       manager = new Manager
