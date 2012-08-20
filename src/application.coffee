@@ -2,6 +2,16 @@
 {Manager} = require './state/manager'
 
 class Application extends Manager
+  constructor: ->
+    super()
+
+    @_time =
+      now: 0
+      delta: 0
+      frame: -1
+
+    @_oldTime = 0
+
   init: (name, delegate) ->
     @when 'init', name, delegate
 
@@ -39,15 +49,21 @@ class Application extends Manager
   loop: ->
     @push '__empty__' if not @_launchEntry
     @change @_launchEntry.name if not @_current
-    @_loop()
+    @_loop(@_time.now = Date.now())
     @
 
   abort: ->
     window.cancelAnimationFrame @_frameId
 
   _loop: (time) ->
+    @_oldTime = @_time.now
+    @_time.now = time;
+    @_time.delta = time - @_oldTime
+    @_time.frame++
+
     @_frameId = window.requestAnimationFrame (time) => @_loop(time)
-    @fire 'tick', time
+    @fire 'tick', @_time
+
     return
 
 window.requestAnimationFrame or=
@@ -56,7 +72,9 @@ window.requestAnimationFrame or=
   window.oRequestAnimationFrame      or
   window.msRequestAnimationFrame     or
   (callback) ->
-    window.setTimeout callback, 1000 / 60, 1000 / 60
+    window.setTimeout ->
+      callback(Date.now())
+    , 1000 / 60
 
 window.cancelAnimationFrame or=
   window.webkitCancelRequestAnimationFrame or
@@ -65,6 +83,7 @@ window.cancelAnimationFrame or=
   window.msCancelRequestAnimationFrame     or
   (id) ->
     window.clearTimeout id
+    return
 
 window.performance = (->
   perf = window.performance or {}

@@ -72,3 +72,37 @@ describe 'Application', ->
           app.abort()
           done()
         .loop()
+
+    it 'should pass time informations to a tick event', (done) ->
+      app = new Application
+      app
+        .tick 'test', (time) ->
+          app.abort()
+          time.should.not.be.undefined
+          time.should.have.property 'now'
+          time.should.have.property 'delta'
+          time.should.have.property 'frame'
+          done()
+        .loop()
+
+    it 'should pass valid time informations at the first frame', (done) ->
+      app = new Application
+      now = Date.now()
+      app
+        .tick 'test', (time) ->
+          app.abort()
+          time.should.have.property('now').within(now - 100, now + 100)
+          time.should.have.property 'delta', 0
+          time.should.have.property 'frame', 0
+          done()
+        .loop()
+
+    it 'should increment frames', (done) ->
+      @timeout = 500
+      app = new Application
+      app
+        .tick 'test', (time) ->
+          if 3 == time.frame
+            app.abort()
+            done()
+        .loop()
