@@ -134,13 +134,64 @@ describe 'Manager', ->
         shared._states['love:loopjs'].should.have.property 'active', false
         done()
 
-    it 'should call init event when the first time', (done) ->
+    it 'should change back to parent, setting active state correctly', (done) ->
+      manager = new Manager
+      manager.push 'parent:child:of:mine'
+      manager.change 'parent:child:of:mine'
+      manager.change 'parent', ->
+        manager._current.name.should.equal 'parent'
+        manager._states.parent.should.have.property 'active', true
+        manager._states['parent:child'].should.have.property 'active', false
+        manager._states['parent:child:of'].should.have.property 'active', false
+        manager._states['parent:child:of:mine'].should.have.property 'active', false
+        done()
+
+    it 'should call enter/exit events when changing states', (done) ->
+      count = 0
+      cb = -> count++; done() if count == 2
+      manager = new Manager
+      manager.push 'test'
+      manager.push 'test2'
+      manager._states.test.state.exit = cb
+      manager._states.test2.state.enter = cb
+      manager.change 'test'
+      manager.change 'test2'
+
+    it 'should call init event when it is the first time the state is entered', (done) ->
       manager = new Manager
       manager.push 'test'
       manager._states.test.state.init = ->
         manager._states.test.init.should.be.true
         done()
       manager.change 'test'
+
+    it 'should call focus/blur event when changing states', (done) ->
+      count = 0
+      cb = -> count++; done() if count == 2
+      manager = new Manager
+      manager.push 'test'
+      manager.push 'test2'
+      manager._states.test.state.blur = cb
+      manager._states.test2.state.focus = cb
+      manager.change 'test'
+      manager.change 'test2'
+
+    it 'should call focus/blur correctly when switching states of the same hierarchy', (done) ->
+      gameFocus = 0
+      gameBlur = 0
+      menuFocus = 0
+      menuBlur = 0
+      cb = ->
+        done() if 2 == gameFocus and 1 == gameBlur and 1 == menuFocus and 1 == menuBlur
+      manager = new Manager
+      manager.push 'game:menu'
+      manager._states.game.state.focus = -> gameFocus++; cb()
+      manager._states.game.state.blur = -> gameBlur++; cb()
+      manager._states['game:menu'].state.focus = -> menuFocus++; cb()
+      manager._states['game:menu'].state.blur = -> menuBlur++; cb()
+      manager.change 'game'
+      manager.change 'game:menu'
+      manager.change 'game'
 
   describe '#fire', ->
     it 'should fire current state event given a event name', (done) ->

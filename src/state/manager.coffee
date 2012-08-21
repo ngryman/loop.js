@@ -101,9 +101,10 @@ class Manager
     toenter.reverse()
 
     if toexit.length > 0
-      while toenter[0] is toexit[0]
-        toenter.shift()
-        toexit.shift()
+      if toenter.length > toexit.length
+        while toenter[0] is toexit[0]
+          toenter.shift()
+          toexit.shift()
       for e in toexit
         tochange.push do (e) => (cb) => @_exit e, cb
 
@@ -111,7 +112,9 @@ class Manager
       tochange.push do (e) => (cb) => @_enter e, cb
 
     async.parallel tochange, =>
+      @_current?.state.blur()
       @_current = toenter[toenter.length - 1]
+      @_current.state.focus()
       callback?()
 
     @
