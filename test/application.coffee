@@ -2,7 +2,7 @@
 global.window = global
 # TODO: simulate browser env here
 
-{Application, State} = require '../src'
+{Application, State} = require '../lib'
 
 describe 'Application', ->
   shared = new Application
