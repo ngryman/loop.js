@@ -6,7 +6,7 @@
     "description": "Game state management system",
     "main": "./lib/gamestate",
     "scripts": {
-        "test": "mocha --recursive --compilers coffee:coffee-script --timeout 100 --reporter spec"
+        "test": "mocha --recursive --compilers coffee:coffee-script --timeout 300 --reporter spec"
     },
     "repository": {
         "type": "git",
