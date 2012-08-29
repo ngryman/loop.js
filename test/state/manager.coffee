@@ -2,8 +2,8 @@
 global.window = global
 # TODO: simulate browser env here
 
-{Manager, State, Transition} = require '../../src'
-{Interpolation} = require '../../src/transition/interpolation'
+{Manager, State, Transition} = require '../../lib'
+{Interpolation} = require '../../lib/transition/interpolation'
 
 describe 'Manager', ->
   describe '#push', ->
