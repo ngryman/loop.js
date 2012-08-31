@@ -2,14 +2,14 @@ require('chai').should();
 global.window = global;
 // TODO: simulate browser env here
 
-var Manager = require('../../lib').Manager;
+var Machine = require('../../lib').Machine;
 var State = require('../../lib').State;
 var Transition = require('../../lib').Transition;
 var Interpolation = require('../../lib/transition/interpolation').Interpolation;
 
-describe('Manager', function() {
+describe('Machine', function() {
 	describe('#push', function() {
-		var shared = new Manager();
+		var shared = new Machine();
 
 		it('should push a new state given its name', function() {
 			shared.push('test');
@@ -23,61 +23,61 @@ describe('Manager', function() {
 		});
 
 		it('should push a state given a name and its instance', function() {
-			var manager = new Manager();
+			var machine = new Machine();
 			var state = new State();
-			manager.push('test', state);
-			manager._states.test.state.should.be.eql(state);
+			machine.push('test', state);
+			machine._states.test.state.should.be.eql(state);
 		});
 
 		it('should push a new state given its name and a transition name', function() {
-			var manager = new Manager();
-			manager.push('test', 'interpolation');
-			manager._states.should.have.deep.property('test.state').be.instanceof(State);
-			manager._states.test.trans.should.be.instanceof(Transition);
+			var machine = new Machine();
+			machine.push('test', 'interpolation');
+			machine._states.should.have.deep.property('test.state').be.instanceof(State);
+			machine._states.test.trans.should.be.instanceof(Transition);
 		});
 
 		it('should push a new state given its name and a transition description', function() {
-			var manager = new Manager();
-			manager.push('test', 'interpolation', { from: 42, to: 1337, duration: 666 });
-			manager._states.test.trans.should.be.instanceof(Transition);
-			manager._states.test.trans.should.have.property('from', 42);
-			manager._states.test.trans.should.have.property('to', 1337);
-			manager._states.test.trans.should.have.property('duration', 666);
+			var machine = new Machine();
+			machine.push('test', 'interpolation', { from: 42, to: 1337, duration: 666 });
+			machine._states.test.trans.should.be.instanceof(Transition);
+			machine._states.test.trans.should.have.property('from', 42);
+			machine._states.test.trans.should.have.property('to', 1337);
+			machine._states.test.trans.should.have.property('duration', 666);
 		});
 
 		it('should push a new state given its name and a transition instance', function() {
-			var manager = new Manager();
+			var machine = new Machine();
 			var interpolation = new Interpolation({ to: 42 });
-			manager.push('test', interpolation);
-			manager._states.test.trans.should.have.property('from', 0);
+			machine.push('test', interpolation);
+			machine._states.test.trans.should.have.property('from', 0);
 		});
 
 		it('should push a new state without transition given its name and a invalid transition name', function() {
-			var manager = new Manager();
-			manager.push('test', 'wombat');
-			manager._states.test.should.have.property('trans', undefined);
+			var machine = new Machine();
+			machine.push('test', 'wombat');
+			machine._states.test.should.have.property('trans', undefined);
 		});
 
 		it('should push a new parent and then a child state given a state compouned name', function() {
-			var manager = new Manager();
-			manager.push('parent:child');
-			manager._states.should.have.deep.property('parent.state').be.instanceof(State);
-			manager._states.should.have.deep.property('parent:child.state').be.instanceof(State);
-			manager._states.should.have.deep.property('parent:child.parent').eql(manager._states.parent);
+			var machine = new Machine();
+			machine.push('parent:child');
+			machine._states.should.have.deep.property('parent.state').be.instanceof(State);
+			machine._states.should.have.deep.property('parent:child.state').be.instanceof(State);
+			machine._states.should.have.deep.property('parent:child.parent').eql(machine._states.parent);
 		});
 
 		it('should push as many childs as specified', function() {
-			var manager = new Manager();
-			manager.push('I:am:a:deep:hierarchy');
-			manager._states.should.have.deep.property('I.state');
-			manager._states.should.have.deep.property('I:am.state');
-			manager._states.should.have.deep.property('I:am.parent').eql(manager._states['I']);
-			manager._states.should.have.deep.property('I:am:a.state');
-			manager._states.should.have.deep.property('I:am:a.parent').eql(manager._states['I:am']);
-			manager._states.should.have.deep.property('I:am:a:deep.state');
-			manager._states.should.have.deep.property('I:am:a:deep.parent').eql(manager._states['I:am:a']);
-			manager._states.should.have.deep.property('I:am:a:deep:hierarchy.state');
-			manager._states.should.have.deep.property('I:am:a:deep:hierarchy.parent').eql(manager._states['I:am:a:deep']);
+			var machine = new Machine();
+			machine.push('I:am:a:deep:hierarchy');
+			machine._states.should.have.deep.property('I.state');
+			machine._states.should.have.deep.property('I:am.state');
+			machine._states.should.have.deep.property('I:am.parent').eql(machine._states['I']);
+			machine._states.should.have.deep.property('I:am:a.state');
+			machine._states.should.have.deep.property('I:am:a.parent').eql(machine._states['I:am']);
+			machine._states.should.have.deep.property('I:am:a:deep.state');
+			machine._states.should.have.deep.property('I:am:a:deep.parent').eql(machine._states['I:am:a']);
+			machine._states.should.have.deep.property('I:am:a:deep:hierarchy.state');
+			machine._states.should.have.deep.property('I:am:a:deep:hierarchy.parent').eql(machine._states['I:am:a:deep']);
 		});
 
 		it('should push a child of an existing state', function() {
@@ -87,11 +87,11 @@ describe('Manager', function() {
 		});
 
 		it('should inherit parent transition', function() {
-			var manager = new Manager();
+			var machine = new Machine();
 			var interpolation = new Interpolation();
-			manager.push('parent:child', interpolation);
-			manager._states.should.have.deep.property('parent.trans', interpolation);
-			manager._states.should.have.deep.property('parent:child.trans', interpolation);
+			machine.push('parent:child', interpolation);
+			machine._states.should.have.deep.property('parent.trans', interpolation);
+			machine._states.should.have.deep.property('parent:child.trans', interpolation);
 		});
 
 		it('should do nothing given no params', function() {
@@ -101,7 +101,7 @@ describe('Manager', function() {
 	});
 
 	describe('#change', function() {
-		var shared = new Manager();
+		var shared = new Machine();
 
 		it('should change to the given state', function(done) {
 			shared.push('test');
@@ -160,15 +160,15 @@ describe('Manager', function() {
 		});
 
 		it('should change back to parent, setting active state correctly', function(done) {
-			var manager = new Manager();
-			manager.push('parent:child:of:mine');
-			manager.change('parent:child:of:mine');
-			manager.change('parent', function() {
-				manager._current.name.should.equal('parent');
-				manager._states.parent.should.have.property('active', true);
-				manager._states['parent:child'].should.have.property('active', false);
-				manager._states['parent:child:of'].should.have.property('active', false);
-				manager._states['parent:child:of:mine'].should.have.property('active', false);
+			var machine = new Machine();
+			machine.push('parent:child:of:mine');
+			machine.change('parent:child:of:mine');
+			machine.change('parent', function() {
+				machine._current.name.should.equal('parent');
+				machine._states.parent.should.have.property('active', true);
+				machine._states['parent:child'].should.have.property('active', false);
+				machine._states['parent:child:of'].should.have.property('active', false);
+				machine._states['parent:child:of:mine'].should.have.property('active', false);
 				done();
 			});
 		});
@@ -176,35 +176,35 @@ describe('Manager', function() {
 		it('should call enter/exit events when changing states', function(done) {
 			var count = 0;
 			var cb = function() { count++; if (count == 2) done(); };
-			var manager = new Manager();
-			manager.push('test');
-			manager.push('test2');
-			manager._states.test.state.exit = cb;
-			manager._states.test2.state.enter = cb;
-			manager.change('test');
-			manager.change('test2');
+			var machine = new Machine();
+			machine.push('test');
+			machine.push('test2');
+			machine._states.test.state.exit = cb;
+			machine._states.test2.state.enter = cb;
+			machine.change('test');
+			machine.change('test2');
 		});
 
 		it('should call init event when it is the first time the state is entered', function(done) {
-			var manager = new Manager();
-			manager.push('test');
-			manager._states.test.state.init = function() {
-				manager._states.test.init.should.be.true;
+			var machine = new Machine();
+			machine.push('test');
+			machine._states.test.state.init = function() {
+				machine._states.test.init.should.be.true;
 				done();
 			};
-			manager.change('test');
+			machine.change('test');
 		});
 
 		it('should call focus/blur event when changing states', function(done) {
 			var count = 0;
 			var cb = function() { count++; if (count == 2) done(); };
-			var manager = new Manager();
-			manager.push('test');
-			manager.push('test2');
-			manager._states.test.state.blur = cb;
-			manager._states.test2.state.focus = cb;
-			manager.change('test');
-			manager.change('test2');
+			var machine = new Machine();
+			machine.push('test');
+			machine.push('test2');
+			machine._states.test.state.blur = cb;
+			machine._states.test2.state.focus = cb;
+			machine.change('test');
+			machine.change('test2');
 		});
 
 		it('should call focus/blur correctly when switching states of the same hierarchy', function(done) {
@@ -215,50 +215,50 @@ describe('Manager', function() {
 			var cb = function() {
 				if (2 == gameFocus && 1 == gameBlur && 1 == menuFocus && 1 == menuBlur) done();
 			};
-			var manager = new Manager();
-			manager.push('game:menu');
-			manager._states.game.state.focus = function() { gameFocus++; cb(); };
-			manager._states.game.state.blur = function() { gameBlur++; cb(); };
-			manager._states['game:menu'].state.focus = function() { menuFocus++; cb(); };
-			manager._states['game:menu'].state.blur = function() { menuBlur++; cb(); };
-			manager.change('game');
-			manager.change('game:menu');
-			manager.change('game');
+			var machine = new Machine();
+			machine.push('game:menu');
+			machine._states.game.state.focus = function() { gameFocus++; cb(); };
+			machine._states.game.state.blur = function() { gameBlur++; cb(); };
+			machine._states['game:menu'].state.focus = function() { menuFocus++; cb(); };
+			machine._states['game:menu'].state.blur = function() { menuBlur++; cb(); };
+			machine.change('game');
+			machine.change('game:menu');
+			machine.change('game');
 		});
 	});
 
 	describe('#fire', function() {
 		it('should fire current state event given a event name', function(done) {
-			var manager = new Manager();
+			var machine = new Machine();
 			var state = new State();
 			state.pause = function() { done() };
-			manager.push('test', state);
-			manager.change('test');
-			manager.fire('pause');
+			machine.push('test', state);
+			machine.change('test');
+			machine.fire('pause');
 		});
 
 		it('should do nothing when there is no current state', function() {
-			var manager = new Manager();
-			manager.push('test');
-			manager.fire('init');
+			var machine = new Machine();
+			machine.push('test');
+			machine.fire('init');
 		});
 
 		it('should fire current state with itself as context', function(done) {
-			var manager = new Manager();
+			var machine = new Machine();
 			var state = new State();
 			state.pause = function() {
 				this.should.eql(state);
 				done();
 			};
-			manager.push('test', state);
-			manager.change('test');
-			manager.fire('pause');
+			machine.push('test', state);
+			machine.change('test');
+			machine.fire('pause');
 		});
 
 		it('should do nothing when the event is unknown', function() {
-			var manager = new Manager();
-			manager.push('test');
-			manager.fire('42');
+			var machine = new Machine();
+			machine.push('test');
+			machine.fire('42');
 		});
 	});
 });
