@@ -4,7 +4,6 @@ global.window = global;
 
 var Loop = require('../lib').Loop;
 var Cycle = require('../lib').Cycle;
-var State = require('../lib').State;
 
 describe('Loop', function() {
 	describe('#add', function() {
@@ -22,7 +21,7 @@ describe('Loop', function() {
 			}, 25);
 		});
 
-		it('should add a cycle wihtout starting it if the loop has not started yet', function() {
+		it('should add a cycle without starting it if the loop has not started yet', function() {
 			var loop = new Loop();
 			var cycle = new Cycle();
 			var called = false;
@@ -61,13 +60,13 @@ describe('Loop', function() {
 			}, 25);
 		});
 
-		it('should update time informations correctly', function(done) {
+		it('should update time information correctly', function(done) {
 			var loop = new Loop();
 			var now = Date.now();
 			loop.start();
 			setTimeout(function() {
 				loop.halt();
-				loop._time.should.have.property('now').within(now, now + 100);
+				loop._time.should.have.property('now').closeTo(now, 100);
 				loop._time.should.have.property('delta').gt(0);
 				done();
 			}, 25);

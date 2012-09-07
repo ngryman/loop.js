@@ -66,7 +66,7 @@ describe('Application', function() {
 			}).loop();
 		});
 
-		it('should pass time informations to a tick event', function(done) {
+		it('should pass time information to a tick event', function(done) {
 			var app = new Application();
 			app.tick('test', function(time) {
 				app.abort();
@@ -79,12 +79,12 @@ describe('Application', function() {
 			}).loop();
 		});
 
-		it('should pass valid time informations at the first frame', function(done) {
+		it('should pass valid time information at the first frame', function(done) {
 			var app = new Application();
 			var now = Date.now();
 			app.tick('test', function(time) {
 				app.abort();
-				time.should.have.property('now').within(now - 100, now + 100);
+				time.should.have.property('now').closeTo(now, 100);
 				time.should.have.property('delta', 0);
 				time.should.have.property('frame', 0);
 				done();

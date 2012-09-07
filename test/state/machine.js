@@ -58,7 +58,7 @@ describe('Machine', function() {
 			machine._states.test.should.have.property('trans', undefined);
 		});
 
-		it('should push a new parent and then a child state given a state compouned name', function() {
+		it('should push a new parent and then a child state given a state compound name', function() {
 			var machine = new Machine();
 			machine.push('parent:child');
 			machine._states.should.have.deep.property('parent.state').be.instanceof(State);
@@ -66,7 +66,7 @@ describe('Machine', function() {
 			machine._states.should.have.deep.property('parent:child.parent').eql(machine._states.parent);
 		});
 
-		it('should push as many childs as specified', function() {
+		it('should push as many children as specified', function() {
 			var machine = new Machine();
 			machine.push('I:am:a:deep:hierarchy');
 			machine._states.should.have.deep.property('I.state');
@@ -116,7 +116,7 @@ describe('Machine', function() {
 			shared.push('vadrouille');
 			shared.change('vadrouille', function() {
 				shared._current.name.should.equal('vadrouille');
-				shared._states.vadrouille.should.have.property('active', true);
+				shared._states['vadrouille'].should.have.property('active', true);
 				shared._states.test.should.have.property('active', false);
 				done();
 			});
@@ -137,7 +137,7 @@ describe('Machine', function() {
 			shared.push('love:loopjs');
 			shared.change('love:loopjs', function() {
 				shared._current.name.should.equal('love:loopjs');
-				shared._states.love.should.have.property('active', true);
+				shared._states['love'].should.have.property('active', true);
 				shared._states['love:loopjs'].should.have.property('active', true);
 				shared._states.test.should.have.property('active', false);
 				shared._states['test:child'].should.have.property('active', false);
@@ -148,10 +148,10 @@ describe('Machine', function() {
 
 		it('should change to an other child, setting active state correctly', function(done) {
 			shared.push('love:sarah:brian');
-			shared._states.love.should.have.property('active', true);
+			shared._states['love'].should.have.property('active', true);
 			shared.change('love:sarah:brian', function() {
 				shared._current.name.should.equal('love:sarah:brian');
-				shared._states.love.should.have.property('active', true);
+				shared._states['love'].should.have.property('active', true);
 				shared._states['love:sarah'].should.have.property('active', true);
 				shared._states['love:sarah:brian'].should.have.property('active', true);
 				shared._states['love:loopjs'].should.have.property('active', false);
@@ -179,8 +179,8 @@ describe('Machine', function() {
 			var machine = new Machine();
 			machine.push('test');
 			machine.push('test2');
-			machine._states.test.state.exit = cb;
-			machine._states.test2.state.enter = cb;
+			machine._states['test'].state.exit = cb;
+			machine._states['test2'].state.enter = cb;
 			machine.change('test');
 			machine.change('test2');
 		});
@@ -201,8 +201,8 @@ describe('Machine', function() {
 			var machine = new Machine();
 			machine.push('test');
 			machine.push('test2');
-			machine._states.test.state.blur = cb;
-			machine._states.test2.state.focus = cb;
+			machine._states['test'].state.blur = cb;
+			machine._states['test2'].state.focus = cb;
 			machine.change('test');
 			machine.change('test2');
 		});
@@ -217,8 +217,8 @@ describe('Machine', function() {
 			};
 			var machine = new Machine();
 			machine.push('game:menu');
-			machine._states.game.state.focus = function() { gameFocus++; cb(); };
-			machine._states.game.state.blur = function() { gameBlur++; cb(); };
+			machine._states['game'].state.focus = function() { gameFocus++; cb(); };
+			machine._states['game'].state.blur = function() { gameBlur++; cb(); };
 			machine._states['game:menu'].state.focus = function() { menuFocus++; cb(); };
 			machine._states['game:menu'].state.blur = function() { menuBlur++; cb(); };
 			machine.change('game');
