@@ -69,7 +69,7 @@ describe('Loop', function() {
 				loop._time.should.have.property('now').closeTo(now, 100);
 				loop._time.should.have.property('delta').gt(0);
 				done();
-			}, 25);
+			}, 50);
 		});
 
 		it('should increment frames', function(done) {
