@@ -41,7 +41,7 @@ describe('Tween', function() {
         });
 
         it('should do nothing without any parameter', function() {
-            var tween = new Tween();
+            new Tween();
         });
     });
 
@@ -120,12 +120,16 @@ describe('Tween', function() {
         it('should call a property if it is a function', function(done) {
             var tween = new Tween(tweenable, 'callMeBaby', 0, 1, 400, 'linear');
 
-            tweenable.callMeBaby = function(value, tween) {
+            tweenable.callMeBaby = function(value, time, tween) {
                 this.should.deep.eql(tweenable);
                 value.should.eql(0);
+                time.should.have.property('now');
+                time.should.have.property('old');
+                time.should.have.property('delta');
+                time.should.have.property('frame');
                 tween.should.be.instanceof(Tween);
             };
-            tween.start();
+            tween.start({ now: 0, old: 0, delta: 0, frame: -1 });
 
             tweenable.callMeBaby = function(value, tween) {
                 value.should.eql(0.5);

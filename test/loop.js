@@ -12,7 +12,13 @@ describe('Loop', function() {
 			loop.start();
 			var cycle = new Cycle();
 			var called = false;
-			cycle.start = function() { called = true };
+			cycle.start = function(time) {
+                time.should.have.property('now');
+                time.should.have.property('old');
+                time.should.have.property('delta');
+                time.should.have.property('frame');
+                called = true
+            };
 			loop.add(cycle);
 			called.should.be.true;
 			setTimeout(function() {
@@ -72,15 +78,15 @@ describe('Loop', function() {
 			}, 50);
 		});
 
-		it('should increment frames', function(done) {
-			var loop = new Loop();
-			loop.start();
-			setTimeout(function() {
-				loop.halt();
-				loop._time.frame.should.be.gt(0);
-				done();
-			}, 50);
-		});
+        it('should increment frames', function(done) {
+            var loop = new Loop();
+            loop.start();
+            setTimeout(function() {
+                loop.halt();
+                loop._time.frame.should.be.gt(0);
+                done();
+            }, 50);
+        });
 	});
 
 	describe('#halt', function() {
@@ -99,4 +105,20 @@ describe('Loop', function() {
 			}, 25);
 		});
 	});
+
+    it('should stop cycle and remove it when tick return false', function(done) {
+        var loop = new Loop();
+        var cycle = new Cycle();
+        cycle.tick = function() { return false; };
+        cycle.end = function(time) {
+            loop.halt();
+            time.should.have.property('now');
+            time.should.have.property('old');
+            time.should.have.property('delta');
+            time.should.have.property('frame');
+            done();
+        };
+        loop.start();
+        loop.add(cycle);
+    });
 });
