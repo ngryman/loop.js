@@ -39,6 +39,10 @@ describe('Tween', function() {
             var tween = new Tween(tweenable, 'opacity');
             tween.from.should.equal(0);
         });
+
+        it('should do nothing without any parameter', function() {
+            var tween = new Tween();
+        });
     });
 
     describe('#start', function() {
@@ -111,6 +115,23 @@ describe('Tween', function() {
             tween.tick({ delta: 400 }).should.be.true;
 
             tween.tick({ delta: 100 }).should.be.true;
+        });
+
+        it('should call a property if it is a function', function(done) {
+            var tween = new Tween(tweenable, 'callMeBaby', 0, 1, 400, 'linear');
+
+            tweenable.callMeBaby = function(value, tween) {
+                this.should.deep.eql(tweenable);
+                value.should.eql(0);
+                tween.should.be.instanceof(Tween);
+            };
+            tween.start();
+
+            tweenable.callMeBaby = function(value, tween) {
+                value.should.eql(0.5);
+                done();
+            };
+            tween.tick({ delta: 200 });
         });
     });
 
