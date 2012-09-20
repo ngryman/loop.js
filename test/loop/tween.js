@@ -40,6 +40,14 @@ describe('Tween', function() {
             tween.from.should.equal(0);
         });
 
+        it('should initialize an array of properties', function() {
+            new Tween(tweenable, ['opacity', 'volume'], 0, 42);
+        });
+
+        it('should initialize properties as function', function() {
+            new Tween(tweenable, function() {}, 0, 42);
+        });
+
         it('should do nothing without any parameter', function() {
             new Tween();
         });
@@ -53,6 +61,18 @@ describe('Tween', function() {
             tweenable.volume.should.eql(0);
 
             tween = new Tween(tweenable, 'opacity volume', 1, 0, 400, 'in');
+            tween.start();
+            tweenable.opacity.should.eql(1);
+            tweenable.volume.should.eql(1);
+        });
+
+        it('should set array of properties to from value', function() {
+            var tween = new Tween(tweenable, ['opacity', 'volume'], 0, 1, 400, 'in');
+            tween.start();
+            tweenable.opacity.should.eql(0);
+            tweenable.volume.should.eql(0);
+
+            tween = new Tween(tweenable, ['opacity', 'volume'], 1, 0, 400, 'in');
             tween.start();
             tweenable.opacity.should.eql(1);
             tweenable.volume.should.eql(1);
@@ -117,7 +137,7 @@ describe('Tween', function() {
             tween.tick({ delta: 100 }).should.be.true;
         });
 
-        it('should call a property if it is a function', function(done) {
+        it('should call a property if it is an object method', function(done) {
             var tween = new Tween(tweenable, 'callMeBaby', 0, 1, 400, 'linear');
 
             tweenable.callMeBaby = function(value, time, tween) {
@@ -136,6 +156,13 @@ describe('Tween', function() {
                 done();
             };
             tween.tick({ delta: 200 });
+        });
+
+        it('should call a property if it is a anonymous function, with the context of the object', function() {
+            new Tween(tweenable, function() {
+                this.should.deep.eql(tweenable);
+                done();
+            }, 0, 1, 400, 'linear');
         });
     });
 
