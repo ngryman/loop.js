@@ -5,7 +5,6 @@ global.window = global;
 var Machine = require('../../lib').Machine;
 var State = require('../../lib').State;
 var Transition = require('../../lib').Transition;
-var Interpolation = require('../../lib/transition/interpolation').Interpolation;
 
 describe('Machine', function() {
 	describe('#push', function() {
@@ -22,35 +21,37 @@ describe('Machine', function() {
 			shared._states.test.should.have.property('flag', 42);
 		});
 
-		it('should push a state given a name and its instance', function() {
-			var machine = new Machine();
-			var state = new State();
-			machine.push('test', state);
-			machine._states.test.state.should.be.eql(state);
-		});
+        // TEMP: disabled feature for now
+//		xit('should push a state given a name and its instance', function() {
+//			var machine = new Machine();
+//			var state = new State();
+//			machine.push('test', state);
+//			machine._states.test.state.should.be.eql(state);
+//		});
 
 		it('should push a new state given its name and a transition name', function() {
 			var machine = new Machine();
-			machine.push('test', 'interpolation');
+			machine.push('test', 'linear');
 			machine._states.should.have.deep.property('test.state').be.instanceof(State);
 			machine._states.test.trans.should.be.instanceof(Transition);
 		});
 
 		it('should push a new state given its name and a transition description', function() {
 			var machine = new Machine();
-			machine.push('test', 'interpolation', { from: 42, to: 1337, duration: 666 });
+			machine.push('test', 'linear', { from: 42, to: 1337, duration: 666 });
 			machine._states.test.trans.should.be.instanceof(Transition);
 			machine._states.test.trans.should.have.property('from', 42);
 			machine._states.test.trans.should.have.property('to', 1337);
 			machine._states.test.trans.should.have.property('duration', 666);
 		});
 
-		it('should push a new state given its name and a transition instance', function() {
-			var machine = new Machine();
-			var interpolation = new Interpolation({ to: 42 });
-			machine.push('test', interpolation);
-			machine._states.test.trans.should.have.property('from', 0);
-		});
+        // TEMP: disabled feature for now
+//		xit('should push a new state given its name and a transition instance', function() {
+//			var machine = new Machine();
+//			var transition = new Transition({ to: 42 });
+//			machine.push('test', transition);
+//			machine._states.test.trans.should.have.property('to', 42);
+//		});
 
 		it('should push a new state without transition given its name and a invalid transition name', function() {
 			var machine = new Machine();
@@ -86,13 +87,21 @@ describe('Machine', function() {
 			shared._states.should.have.deep.property('test:child.parent').eql(shared._states.test);
 		});
 
-		it('should inherit parent transition', function() {
-			var machine = new Machine();
-			var interpolation = new Interpolation();
-			machine.push('parent:child', interpolation);
-			machine._states.should.have.deep.property('parent.trans', interpolation);
-			machine._states.should.have.deep.property('parent:child.trans', interpolation);
-		});
+        // TEMP: disabled feature for now
+//        xit('should copy parent transition', function() {
+//            var machine = new Machine();
+//            var transition = new Transition({ from: 1337 });
+//            machine.push('parent:child', transition);
+//            machine._states.should.have.deep.property('parent.trans.from', 1337);
+//            machine._states.should.have.deep.property('parent:child.trans.from', 1337);
+//        });
+
+        it('should copy parent transition', function() {
+            var machine = new Machine();
+            machine.push('parent:child', 'linear', { from: 1337 });
+            machine._states.should.have.deep.property('parent.trans.from', 1337);
+            machine._states.should.have.deep.property('parent:child.trans.from', 1337);
+        });
 
 		it('should do nothing given no params', function() {
 			shared.push();
