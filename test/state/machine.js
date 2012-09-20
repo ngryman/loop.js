@@ -1,4 +1,4 @@
-require('chai').should();
+var should = require('chai').should();
 global.window = global;
 // TODO: simulate browser env here
 
@@ -106,6 +106,22 @@ describe('Machine', function() {
 		it('should do nothing given no params', function() {
 			shared.push();
 			shared._states.should.not.have.keys('undefined');
+		});
+	});
+
+	describe('#change', function() {
+		it ('should get an existing state', function() {
+			var machine = new Machine();
+			machine.push('test');
+			var state = machine.get('test');
+			state.should.be.instanceof(State);
+		});
+
+		it ('should get undefined for a non-existing state', function() {
+			var machine = new Machine();
+			machine.push('test');
+			var state = machine.get('void');
+			should.not.exist(state);
 		});
 	});
 

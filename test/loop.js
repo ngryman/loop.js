@@ -1,4 +1,4 @@
-require('chai').should();
+var should = require('chai').should();
 global.window = global;
 // TODO: simulate browser env here
 
