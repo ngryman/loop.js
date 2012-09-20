@@ -21,7 +21,7 @@ describe('Machine', function() {
 			shared._states.test.should.have.property('flag', 42);
 		});
 
-        // TEMP: disabled feature for now
+		// TEMP: disabled feature for now
 //		xit('should push a state given a name and its instance', function() {
 //			var machine = new Machine();
 //			var state = new State();
@@ -45,7 +45,7 @@ describe('Machine', function() {
 			machine._states.test.trans.should.have.property('duration', 666);
 		});
 
-        // TEMP: disabled feature for now
+		// TEMP: disabled feature for now
 //		xit('should push a new state given its name and a transition instance', function() {
 //			var machine = new Machine();
 //			var transition = new Transition({ to: 42 });
@@ -87,7 +87,7 @@ describe('Machine', function() {
 			shared._states.should.have.deep.property('test:child.parent').eql(shared._states.test);
 		});
 
-        // TEMP: disabled feature for now
+		// TEMP: disabled feature for now
 //        xit('should copy parent transition', function() {
 //            var machine = new Machine();
 //            var transition = new Transition({ from: 1337 });
@@ -96,12 +96,12 @@ describe('Machine', function() {
 //            machine._states.should.have.deep.property('parent:child.trans.from', 1337);
 //        });
 
-        it('should copy parent transition', function() {
-            var machine = new Machine();
-            machine.push('parent:child', 'linear', { from: 1337 });
-            machine._states.should.have.deep.property('parent.trans.from', 1337);
-            machine._states.should.have.deep.property('parent:child.trans.from', 1337);
-        });
+		it('should copy parent transition', function() {
+			var machine = new Machine();
+			machine.push('parent:child', 'linear', { from: 1337 });
+			machine._states.should.have.deep.property('parent.trans.from', 1337);
+			machine._states.should.have.deep.property('parent:child.trans.from', 1337);
+		});
 
 		it('should do nothing given no params', function() {
 			shared.push();
@@ -184,7 +184,10 @@ describe('Machine', function() {
 
 		it('should call enter/exit events when changing states', function(done) {
 			var count = 0;
-			var cb = function() { count++; if (count == 2) done(); };
+			var cb = function() {
+				count++;
+				if (count == 2) done();
+			};
 			var machine = new Machine();
 			machine.push('test');
 			machine.push('test2');
@@ -206,7 +209,10 @@ describe('Machine', function() {
 
 		it('should call focus/blur event when changing states', function(done) {
 			var count = 0;
-			var cb = function() { count++; if (count == 2) done(); };
+			var cb = function() {
+				count++;
+				if (count == 2) done();
+			};
 			var machine = new Machine();
 			machine.push('test');
 			machine.push('test2');
@@ -226,10 +232,22 @@ describe('Machine', function() {
 			};
 			var machine = new Machine();
 			machine.push('game:menu');
-			machine._states['game'].state.focus = function() { gameFocus++; cb(); };
-			machine._states['game'].state.blur = function() { gameBlur++; cb(); };
-			machine._states['game:menu'].state.focus = function() { menuFocus++; cb(); };
-			machine._states['game:menu'].state.blur = function() { menuBlur++; cb(); };
+			machine._states['game'].state.focus = function() {
+				gameFocus++;
+				cb();
+			};
+			machine._states['game'].state.blur = function() {
+				gameBlur++;
+				cb();
+			};
+			machine._states['game:menu'].state.focus = function() {
+				menuFocus++;
+				cb();
+			};
+			machine._states['game:menu'].state.blur = function() {
+				menuBlur++;
+				cb();
+			};
 			machine.change('game');
 			machine.change('game:menu');
 			machine.change('game');
