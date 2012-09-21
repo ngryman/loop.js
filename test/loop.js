@@ -35,6 +35,17 @@ describe('Loop', function() {
 			loop.add(cycle);
 			called.should.be.false;
 		});
+
+		it('should call the callback when cycle has finished', function(done) {
+			var loop = new Loop();
+			var cycle = new Cycle();
+			cycle.tick = function() { return false };
+			loop.start();
+			loop.add(cycle, function(c) {
+				c.should.be.instanceof(Cycle);
+				done();
+			});
+		});
 	});
 
 	describe('#remove', function() {
