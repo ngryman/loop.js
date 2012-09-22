@@ -158,11 +158,12 @@ describe('Tween', function() {
 			tween.tick({ delta: 200 });
 		});
 
-		it('should call a property if it is a anonymous function, with the context of the object', function() {
-			new Tween(tweenable, function() {
+		it('should call a property if it is a anonymous function, with the context of the object', function(done) {
+			var tween = new Tween(tweenable, function() {
 				this.should.deep.eql(tweenable);
 				done();
 			}, 0, 1, 400, 'linear');
+			tween.start({ now: 0, old: 0, delta: 0, frame: -1 });
 		});
 	});
 
