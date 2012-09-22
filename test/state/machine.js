@@ -297,13 +297,47 @@ describe('Machine', function() {
 		it('should apply a transition when changing', function(done) {
 			var machine = new Machine();
 			var called = 0;
-			machine.push('test', 'linear', { duration: 200 });
-			machine.get('test').transition = function() {
+			machine.push('test', 'linear', { duration: 100 });
+			machine.get('test').transition = function(value) {
+//				if (0 == called) value.should.eql(0);
 				called++;
 			};
 			machine.change('test', function() {
 				called.should.be.gt(0);
 				done();
+			});
+		});
+
+		it('should reverse transition correctly when changing multiple times', function(done) {
+			this.timeout(800);
+			var machine = new Machine();
+			var values = [], changeNb = 0;
+			machine.push('test', 'linear', { duration: 100 });
+			machine.push('test2');
+			machine.get('test').transition = function(value) {
+				if (undefined === values[changeNb]) values[changeNb] = value;
+			};
+			machine.change('test', function() {
+				changeNb++;
+				machine.change('test2', function() {
+					changeNb++;
+					machine.change('test', function() {
+						changeNb++;
+						machine.change('test2', function() {
+							changeNb++;
+							machine.change('test', function() {
+								changeNb++;
+								machine.change('test2', function() {
+									values[0].should.eql(0);
+									values[1].should.eql(1);
+									values[2].should.eql(0);
+									values[3].should.eql(1);
+									done();
+								});
+							});
+						});
+					});
+				});
 			});
 		});
 	});

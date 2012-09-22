@@ -77,6 +77,18 @@ describe('Tween', function() {
 			tweenable.opacity.should.eql(1);
 			tweenable.volume.should.eql(1);
 		});
+
+		it('should reset an already used tween', function() {
+			var tween = new Tween(tweenable, 'opacity', 0, 1, 400, 'in');
+			tween.start();
+			tweenable.opacity.should.eql(0);
+			tween.tick({ delta: 400 });
+			tweenable.opacity.should.eql(1);
+			tween.start();
+			tweenable.opacity.should.eql(0);
+			tween.tick({ delta: 400 });
+			tweenable.opacity.should.eql(1);
+		});
 	});
 
 	describe('#tick', function() {
@@ -184,6 +196,8 @@ describe('Tween', function() {
 
 			tween.tick({ delta: 100 }).should.be.true;
 		});
+
+		// TODO: end should be called for very short / invalid durations
 	});
 
 	describe('#reverse', function() {

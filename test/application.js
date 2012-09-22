@@ -92,7 +92,6 @@ describe('Application', function() {
 		});
 
 		it('should increment frames', function(done) {
-			this.timeout = 500;
 			var app = new Application();
 			app.tick('test',function(time) {
 				if (3 == time.frame) {
