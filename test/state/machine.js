@@ -56,7 +56,7 @@ describe('Machine', function() {
 		it('should push a new state without transition given its name and a invalid transition name', function() {
 			var machine = new Machine();
 			machine.push('test', 'wombat');
-			machine._states.test.should.have.property('trans', undefined);
+			should.not.exist(machine._states.test.trans);
 		});
 
 		it('should push a new parent and then a child state given a state compound name', function() {
@@ -109,15 +109,15 @@ describe('Machine', function() {
 		});
 	});
 
-	describe('#change', function() {
-		it ('should get an existing state', function() {
+	describe('#get', function() {
+		it('should get an existing state', function() {
 			var machine = new Machine();
 			machine.push('test');
 			var state = machine.get('test');
 			state.should.be.instanceof(State);
 		});
 
-		it ('should get undefined for a non-existing state', function() {
+		it('should get undefined for a non-existing state', function() {
 			var machine = new Machine();
 			machine.push('test');
 			var state = machine.get('void');
@@ -187,14 +187,15 @@ describe('Machine', function() {
 		it('should change back to parent, setting active state correctly', function(done) {
 			var machine = new Machine();
 			machine.push('parent:child:of:mine');
-			machine.change('parent:child:of:mine');
-			machine.change('parent', function() {
-				machine._current.name.should.equal('parent');
-				machine._states.parent.should.have.property('active', true);
-				machine._states['parent:child'].should.have.property('active', false);
-				machine._states['parent:child:of'].should.have.property('active', false);
-				machine._states['parent:child:of:mine'].should.have.property('active', false);
-				done();
+			machine.change('parent:child:of:mine', function() {
+				machine.change('parent', function() {
+					machine._current.name.should.equal('parent');
+					machine._states.parent.should.have.property('active', true);
+					machine._states['parent:child'].should.have.property('active', false);
+					machine._states['parent:child:of'].should.have.property('active', false);
+					machine._states['parent:child:of:mine'].should.have.property('active', false);
+					done();
+				});
 			});
 		});
 
@@ -209,8 +210,9 @@ describe('Machine', function() {
 			machine.push('test2');
 			machine._states['test'].state.exit = cb;
 			machine._states['test2'].state.enter = cb;
-			machine.change('test');
-			machine.change('test2');
+			machine.change('test', function() {
+				machine.change('test2');
+			});
 		});
 
 		it('should call init event when it is the first time the state is entered', function(done) {
@@ -234,8 +236,9 @@ describe('Machine', function() {
 			machine.push('test2');
 			machine._states['test'].state.blur = cb;
 			machine._states['test2'].state.focus = cb;
-			machine.change('test');
-			machine.change('test2');
+			machine.change('test', function() {
+				machine.change('test2');
+			});
 		});
 
 		it('should call focus/blur correctly when switching states of the same hierarchy', function(done) {
@@ -264,9 +267,44 @@ describe('Machine', function() {
 				menuBlur++;
 				cb();
 			};
-			machine.change('game');
-			machine.change('game:menu');
-			machine.change('game');
+			machine.change('game', function() {
+				machine.change('game:menu', function() {
+					machine.change('game');
+				});
+			});
+		});
+
+		it('should do nothing when changing to an already active state', function(done) {
+			var blur = 0;
+			var focus = 0;
+			var machine = new Machine();
+			machine.push('test');
+			machine.get('test').blur = function() {
+				blur++;
+			};
+			machine.get('test').focus = function() {
+				focus++;
+			};
+			machine.change('test', function() {
+				machine.change('test', function() {
+					blur.should.eql(0);
+					focus.should.eql(1);
+					done();
+				});
+			});
+		});
+
+		it('should apply a transition when changing', function(done) {
+			var machine = new Machine();
+			var called = 0;
+			machine.push('test', 'linear', { duration: 200 });
+			machine.get('test').transition = function() {
+				called++;
+			};
+			machine.change('test', function() {
+				called.should.be.gt(0);
+				done();
+			});
 		});
 	});
 
@@ -276,8 +314,9 @@ describe('Machine', function() {
 			var state = new State();
 			state.pause = function() { done() };
 			machine.push('test', state);
-			machine.change('test');
-			machine.fire('pause');
+			machine.change('test', function() {
+				machine.fire('pause');
+			});
 		});
 
 		it('should do nothing when there is no current state', function() {
@@ -294,8 +333,9 @@ describe('Machine', function() {
 				done();
 			};
 			machine.push('test', state);
-			machine.change('test');
-			machine.fire('pause');
+			machine.change('test', function() {
+				machine.fire('pause');
+			});
 		});
 
 		it('should do nothing when the event is unknown', function() {
