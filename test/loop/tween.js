@@ -185,4 +185,23 @@ describe('Tween', function() {
 			tween.tick({ delta: 100 }).should.be.true;
 		});
 	});
+
+	describe('#reverse', function() {
+		it('should swap from and to values', function() {
+			var tween = new Tween(tweenable, 'opacity', 0, 1, 400, 'linear');
+			tween.reverse();
+			tween.from.should.eql(1);
+			tween.to.should.eql(0);
+		});
+
+		it('should reverse tweaning', function() {
+			var tween = new Tween(tweenable, 'opacity', 0, 1, 400, 'linear');
+			tween.start();
+			tween.tick({ delta: 200 });
+			tweenable.opacity.should.eql(0.5);
+			tween.reverse();
+			tween.tick({ delta: 200 });
+			tweenable.opacity.should.eql(0);
+		});
+	});
 });
