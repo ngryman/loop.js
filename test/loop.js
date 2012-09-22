@@ -42,6 +42,7 @@ describe('Loop', function() {
 			cycle.tick = function() { return false };
 			loop.start();
 			loop.add(cycle, function(c) {
+				loop.halt();
 				c.should.be.instanceof(Cycle);
 				done();
 			});
