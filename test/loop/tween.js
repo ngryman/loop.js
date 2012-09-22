@@ -151,7 +151,7 @@ describe('Tween', function() {
 			};
 			tween.start({ now: 0, old: 0, delta: 0, frame: -1 });
 
-			tweenable.callMeBaby = function(value, tween) {
+			tweenable.callMeBaby = function(value) {
 				value.should.eql(0.5);
 				done();
 			};
