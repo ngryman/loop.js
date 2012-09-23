@@ -104,8 +104,8 @@ describe('Tween', function() {
 			tweenable.volume.should.eql(1);
 
 			tween.tick({ delta: 100 });
-			tweenable.opacity.should.be.gt(1);
-			tweenable.volume.should.be.gt(1);
+			tweenable.opacity.should.eql(1);
+			tweenable.volume.should.eql(1);
 		});
 
 		it('should update properties correctly when start is above 0', function() {
@@ -120,8 +120,8 @@ describe('Tween', function() {
 			tweenable.volume.should.eql(2);
 
 			tween.tick({ delta: 100 });
-			tweenable.opacity.should.be.gt(2);
-			tweenable.volume.should.be.gt(2);
+			tweenable.opacity.should.eql(2);
+			tweenable.volume.should.eql(2);
 		});
 
 		it('should update properties correctly when increment is negative', function() {
@@ -137,16 +137,16 @@ describe('Tween', function() {
 			tweenable.volume.should.eql(0);
 
 			tween.tick({ delta: 100 });
-			tweenable.opacity.should.be.lt(0);
-			tweenable.volume.should.be.lt(0);
+			tweenable.opacity.should.eql(0);
+			tweenable.volume.should.eql(0);
 		});
 
-		it('should return true when tween has reach the end', function() {
+		it('should return false when it has reach the end', function() {
 			var tween = new Tween(tweenable, 'opacity volume', 0, 1, 400, 'linear');
 			tween.start();
-			tween.tick({ delta: 400 }).should.be.true;
+			tween.tick({ delta: 400 }).should.be.false;
 
-			tween.tick({ delta: 100 }).should.be.true;
+			tween.tick({ delta: 100 }).should.be.false;
 		});
 
 		it('should call a property if it is an object method', function(done) {
@@ -177,27 +177,28 @@ describe('Tween', function() {
 			}, 0, 1, 400, 'linear');
 			tween.start({ now: 0, old: 0, delta: 0, frame: -1 });
 		});
-	});
 
-	describe('#end', function() {
+		it('should return false at the first call if duration is 0', function() {
+			var tween = new Tween(tweenable, 'opacity', 0, 1, 0, 'linear');
+			tween.start();
+			tween.tick({ delta: 50 }).should.be.false;
+		});
+
 		it('should set properties to to value', function() {
 			var tween = new Tween(tweenable, 'opacity volume', 0, 1337, 400, 'linear');
 			tween.start();
 			tween.tick({ delta: 500 });
-			tween.end();
 			tweenable.opacity.should.eql(1337);
 			tweenable.volume.should.eql(1337);
 		});
 
-		it('should return true when tween has reach the end', function() {
+		it('should return false when tween has reach the end', function() {
 			var tween = new Tween(tweenable, 'opacity volume', 0, 1, 400, 'linear');
 			tween.start();
-			tween.tick({ delta: 400 }).should.be.true;
+			tween.tick({ delta: 400 }).should.be.false;
 
-			tween.tick({ delta: 100 }).should.be.true;
+			tween.tick({ delta: 100 }).should.be.false;
 		});
-
-		// TODO: end should be called for very short / invalid durations
 	});
 
 	describe('#reverse', function() {
