@@ -297,9 +297,9 @@ describe('Machine', function() {
 		it('should apply a transition when changing', function(done) {
 			var machine = new Machine();
 			var called = 0;
-			machine.push('test', 'linear', { duration: 100 });
+			machine.push('test', 'linear', { duration: 25 });
 			machine.get('test').transition = function(value) {
-//				if (0 == called) value.should.eql(0);
+				if (0 == called) value.should.eql(0);
 				called++;
 			};
 			machine.change('test', function() {
@@ -309,10 +309,9 @@ describe('Machine', function() {
 		});
 
 		it('should reverse transition correctly when changing multiple times', function(done) {
-			this.timeout(800);
 			var machine = new Machine();
 			var values = [], changeNb = 0;
-			machine.push('test', 'linear', { duration: 100 });
+			machine.push('test', 'linear', { duration: 25 });
 			machine.push('test2');
 			machine.get('test').transition = function(value) {
 				if (undefined === values[changeNb]) values[changeNb] = value;

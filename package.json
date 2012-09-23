@@ -6,7 +6,7 @@
 	"description": "HTML5 game ecosystem",
 	"main": "./lib/index",
 	"scripts": {
-		"test": "mocha --recursive --timeout 300 --reporter spec"
+		"test": "mocha --recursive --timeout 1000 --reporter spec"
 	},
 	"repository": {
 		"type": "git",
