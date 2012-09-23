@@ -92,10 +92,10 @@ describe('Loop', function() {
 			loop.start();
 			setTimeout(function() {
 				loop.halt();
-				loop._time.should.have.property('now').closeTo(now, 100);
+				loop._time.should.have.property('now').closeTo(now, 200);
 				loop._time.should.have.property('delta').gt(0);
 				done();
-			}, 50);
+			}, 100);
 		});
 
 		it('should increment frames', function(done) {
@@ -105,7 +105,7 @@ describe('Loop', function() {
 				loop.halt();
 				loop._time.frame.should.be.gt(0);
 				done();
-			}, 50);
+			}, 100);
 		});
 	});
 
