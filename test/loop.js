@@ -66,6 +66,14 @@ describe('Loop', function() {
 				done();
 			}, 25);
 		});
+
+		it('should do nothing when the cycle is not present', function() {
+			var loop = new Loop();
+			var cycle = new Cycle();
+			loop.add(cycle);
+			loop.remove(new Cycle());
+			loop._cycles[0].should.eql(cycle);
+		});
 	});
 
 	describe('#start', function() {
@@ -128,6 +136,7 @@ describe('Loop', function() {
 			time.should.have.property('old');
 			time.should.have.property('delta');
 			time.should.have.property('frame');
+			loop._cycles.should.have.length(0);
 			done();
 		};
 		loop.start();
