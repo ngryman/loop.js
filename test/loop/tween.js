@@ -51,6 +51,10 @@ describe('Tween', function() {
 		it('should do nothing without any parameter', function() {
 			new Tween();
 		});
+
+		it('should accept a custom tweening funciton', function() {
+			var tween = new Tween(tweenable, 'opacity', 0, 1, 400, function() {});
+		});
 	});
 
 	describe('#start', function() {
@@ -145,7 +149,6 @@ describe('Tween', function() {
 			var tween = new Tween(tweenable, 'opacity volume', 0, 1, 400, 'linear');
 			tween.start();
 			tween.tick({ delta: 400 }).should.be.false;
-
 			tween.tick({ delta: 100 }).should.be.false;
 		});
 
@@ -196,8 +199,20 @@ describe('Tween', function() {
 			var tween = new Tween(tweenable, 'opacity volume', 0, 1, 400, 'linear');
 			tween.start();
 			tween.tick({ delta: 400 }).should.be.false;
-
 			tween.tick({ delta: 100 }).should.be.false;
+		});
+
+		it('should use the custom tweening function if provided', function() {
+			var tween = new Tween(tweenable, 'opacity', 0, 42, 400, function(t, b, c, d) {
+				t.should.eql(tween._cur);
+				b.should.eql(tween.from);
+				c.should.eql(tween.to - tween.from);
+				d.should.eql(tween.duration);
+				return t;
+			});
+			tween.start();
+			tween.tick({ delta: 123 });
+			tween.value.should.eql(123);
 		});
 	});
 
