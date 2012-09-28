@@ -6,7 +6,7 @@
 	"description": "HTML5 game ecosystem",
 	"main": "./lib/index",
 	"scripts": {
-		"test": "mocha --recursive --timeout 1000 --reporter spec"
+		"test": "mocha --recursive --timeout 1000 --reporter spec --grep browser --invert"
 	},
 	"repository": {
 		"type": "git",
@@ -22,9 +22,12 @@
 		"chai": "1.2.0",
 		"async": "0.1.22",
 		"docco": "0.3.0",
-		"which": "1.0.5"
+		"which": "1.0.5",
+		"jake": "0.3.16",
+		"browserify": "1.16.1"
 	},
 	"engine": {
 		"node": "0.8.x"
-	}
+	},
+	"browserify" : "dist/loop.js"
 }
