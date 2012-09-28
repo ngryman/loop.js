@@ -1,7 +1,5 @@
 var fs = require('fs');
 
-task('default', ['build:lib', 'build:lib-min', 'build:test']);
-
 namespace('build', function() {
 	task('lib', [], function() {
 		process.argv[2] = 'lib/index.js';
@@ -30,3 +28,7 @@ namespace('build', function() {
 		});
 	});
 });
+
+task('build', ['build:lib', 'build:lib-min', 'build:test']);
+
+task('default', ['build']);
