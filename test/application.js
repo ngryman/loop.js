@@ -1,6 +1,7 @@
-var should = require('chai').should();
-global.window = global;
-// TODO: simulate browser env here
+var chai = chai || require('chai');
+global.window = undefined == typeof window ? window : global;
+
+var should = chai.should();
 
 var Application = require('../lib').Application;
 var State = require('../lib').State;
@@ -81,7 +82,7 @@ describe('Application', function() {
 
 		it('should pass valid time information at the first frame', function(done) {
 			var app = new Application();
-			var now = Date.now();
+			var now = +Date.now();
 			app.tick('test',function(time) {
 				app.abort();
 				time.should.have.property('now').closeTo(now, 100);

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+	<meta charset="utf-8">
+	<title></title>
+
+	<link href="../../node_modules/mocha/mocha.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div id="mocha"></div>
+
+<script src="../../node_modules/mocha/mocha.js"></script>
+<script src="../../node_modules/chai/chai.js"></script>
+<script src="../../dist/loop.js"></script>
+<script>mocha.setup('bdd')</script>
+<script src="all-tests.js"></script>
+<script>
+	mocha.run();
+</script>
+
+</body>
+
+</html>

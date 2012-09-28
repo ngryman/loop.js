@@ -1,6 +1,7 @@
-var should = require('chai').should();
-global.window = global;
-// TODO: simulate browser env here
+var chai = chai || require('chai');
+global.window = undefined == typeof window ? window : global;
+
+var should = chai.should();
 
 var Tween = require('../../lib').Tween;
 var Ease = require('../../lib').Ease;

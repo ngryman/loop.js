@@ -1,6 +1,7 @@
-var should = require('chai').should();
-global.window = global;
-// TODO: simulate browser env here
+var chai = chai || require('chai');
+global.window = undefined == typeof window ? window : global;
+
+var should = chai.should();
 
 var Loop = require('../lib').Loop;
 var Cycle = require('../lib').Cycle;
@@ -88,7 +89,7 @@ describe('Loop', function() {
 
 		it('should update time information correctly', function(done) {
 			var loop = new Loop();
-			var now = Date.now();
+			var now = +Date.now();
 			loop.start();
 			setTimeout(function() {
 				loop.halt();
