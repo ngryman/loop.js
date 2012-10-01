@@ -43,9 +43,40 @@ namespace('build', function() {
 			fs.appendFileSync(output, content);
 		});
 	});
+
+	task('all', ['build:dist', 'build:test']);
 });
 
-task('build', ['build:dev']);
+task('build', ['build:dev', 'build:test']);
+
+task('watch', ['build:all'], function() {
+	var build = (function() {
+		var timerId, running = false;
+
+		function onBuildComplete() {
+			this.removeAllListeners('complete');
+			this.reenable(true);
+			running = false;
+		}
+
+		return function(event, filename) {
+			if (running) return;
+			if (!filename || /^(Jakefile|\.)/.test(filename)) return;
+
+			// ensure we launch this once per flow of events
+			clearTimeout(timerId);
+			timerId = setTimeout(function() {
+				running = true;
+
+				var buildTask = jake.Task['build'];
+				buildTask.addListener('complete', onBuildComplete);
+				buildTask.invoke();
+			}, 500);
+		};
+	})();
+
+	fs.watch(__dirname, build);
+});
 
 task('default', ['build']);
 
