@@ -202,9 +202,15 @@ describe('Machine', function() {
 
 		it('should call enter/exit events when changing states', function(done) {
 			var count = 0;
-			var cb = function() {
+			var cb = function(event) {
 				count++;
-				if (count == 2) done();
+				if (count == 1) {
+					event.should.eql('exit');
+				}
+				if (count == 2) {
+					event.should.eql('enter');
+					done();
+				}
 			};
 			var machine = new Machine();
 			machine.push('test');
@@ -228,9 +234,15 @@ describe('Machine', function() {
 
 		it('should call focus/blur event when changing states', function(done) {
 			var count = 0;
-			var cb = function() {
+			var cb = function(event) {
 				count++;
-				if (count == 2) done();
+				if (count == 1) {
+					event.should.eql('blur');
+				}
+				if (count == 2) {
+					event.should.eql('focus');
+					done();
+				}
 			};
 			var machine = new Machine();
 			machine.push('test');
