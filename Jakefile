@@ -32,7 +32,7 @@ namespace('build', function() {
 		fs.appendFileSync(path.join(__dirname, 'dist/loop.min.js'), src);
 	});
 
-	task('test', [], function() {
+	task('test', ['build:dev'], function() {
 		// todo: auto discovery
 		var files = ('test/loop/tween.js test/state/machine.js test/application.js test/loop.js').split(' '),
 			output = path.join(__dirname, 'test/browser/all-tests.js');
