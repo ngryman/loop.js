@@ -340,23 +340,26 @@ describe('Machine', function() {
 				});
 			});
 		});
+
+		it('should call the callback with the new active state as context', function() {
+			var machine = new Machine();
+			var state = new State();
+			machine.push('test', state);
+			machine.change('test', function() {
+				this.should.be.eql(state);
+			});
+		});
 	});
 
-	describe('#fire', function() {
-		it('should fire current state event given a event name', function(done) {
+	describe('should fire', function() {
+		it('state event given a event name', function(done) {
 			var machine = new Machine();
 			var state = new State();
 			state.pause = function() { done() };
 			machine.push('test', state);
 			machine.change('test', function() {
-				machine.fire('pause');
+				machine._fire(this, 'pause');
 			});
-		});
-
-		it('should do nothing when there is no current state', function() {
-			var machine = new Machine();
-			machine.push('test');
-			machine.fire('init');
 		});
 
 		it('should fire current state with itself as context', function(done) {
@@ -368,14 +371,8 @@ describe('Machine', function() {
 			};
 			machine.push('test', state);
 			machine.change('test', function() {
-				machine.fire('pause');
+				machine._fire(this, 'pause');
 			});
-		});
-
-		it('should do nothing when the event is unknown', function() {
-			var machine = new Machine();
-			machine.push('test');
-			machine.fire('42');
 		});
 	});
 });

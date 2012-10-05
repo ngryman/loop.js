@@ -53,7 +53,7 @@ describe('Tween', function() {
 			new Tween();
 		});
 
-		it('should accept a custom tweening funciton', function() {
+		it('should accept a custom tweening function', function() {
 			var tween = new Tween(tweenable, 'opacity', 0, 1, 400, function() {});
 		});
 	});

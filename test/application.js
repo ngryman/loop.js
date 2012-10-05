@@ -47,6 +47,15 @@ describe('Application', function() {
 			shared._states.test.state.should.have.deep.property('init', delegate);
 			shared._states.test.state.should.have.deep.property('cleanup', delegate);
 		});
+
+		it('should pass the event name as argument', function(done) {
+			var app = new Application();
+			app.when('enter exit', 'test', function(event) {
+				event.should.eql('enter');
+				done();
+			});
+			app.change('test');
+		});
 	});
 
 	describe('#loop', function() {
@@ -61,7 +70,7 @@ describe('Application', function() {
 
 		it('should launch the game loop using the first registered state and invoking its tick event', function(done) {
 			var app = new Application();
-			app.tick('test',function() {
+			app.tick('test', function() {
 				app.abort();
 				done();
 			}).loop();
@@ -69,7 +78,7 @@ describe('Application', function() {
 
 		it('should pass time information to a tick event', function(done) {
 			var app = new Application();
-			app.tick('test',function(time) {
+			app.tick('test', function(event, time) {
 				app.abort();
 				time.should.not.be.undefined;
 				time.should.have.property('now');
@@ -83,7 +92,7 @@ describe('Application', function() {
 		it('should pass valid time information at the first frame', function(done) {
 			var app = new Application();
 			var now = +Date.now();
-			app.tick('test',function(time) {
+			app.tick('test', function(event, time) {
 				app.abort();
 				time.should.have.property('now').closeTo(now, 100);
 				time.should.have.property('delta', 0);
@@ -94,7 +103,7 @@ describe('Application', function() {
 
 		it('should increment frames', function(done) {
 			var app = new Application();
-			app.tick('test',function(time) {
+			app.tick('test', function(event, time) {
 				if (3 == time.frame) {
 					app.abort();
 					done();
