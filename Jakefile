@@ -1,4 +1,5 @@
 var fs = require('fs'),
+	exec = require('child_process').exec,
 	path = require('path'),
 	browserify = require('browserify'),
 	uglify = require("uglify-js");
@@ -48,6 +49,16 @@ namespace('build', function() {
 });
 
 task('build', ['build:dev', 'build:test']);
+
+namespace('test', function() {
+	task('browser', [], function() {
+		exec('start ' + path.join(__dirname, 'test/browser/index.html'));
+	});
+});
+
+task('test', function() {
+	console.log('please run "npm test" instead.');
+});
 
 task('watch', ['build:all'], function() {
 	var build = (function() {
