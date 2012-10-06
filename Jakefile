@@ -52,6 +52,8 @@ task('build', ['build:dev', 'build:test']);
 
 namespace('test', function() {
 	task('browser', [], function() {
+		// todo: for *nix and mac
+		// http://stackoverflow.com/questions/3124556/clean-way-to-launch-the-web-browser-from-shell-script
 		exec('start ' + path.join(__dirname, 'test/browser/index.html'));
 	});
 });
