@@ -311,6 +311,30 @@ describe('Machine', function() {
 			});
 		});
 
+		it('should not call exit/enter when a child give the focus to its parent', function(done) {
+			var expectOrder = 'parent#enter parent:child#enter parent:child#focus parent:child#blur parent:child#exit parent#focus ';
+			var order = '';
+			var parent = new State();
+			parent.enter = function() { order += 'parent#enter ' };
+			parent.exit = function() { order += 'parent#exit ' };
+			parent.focus = function() { order += 'parent#focus ' };
+			parent.blur = function() { order += 'parent#blur ' };
+			var child = new State();
+			child.enter = function() { order += 'parent:child#enter ' };
+			child.exit = function() { order += 'parent:child#exit ' };
+			child.focus = function() { order += 'parent:child#focus ' };
+			child.blur = function() { order += 'parent:child#blur ' };
+			var machine = new Machine();
+			machine.push('parent', parent);
+			machine.push('parent:child', child);
+			machine.change('parent:child', function() {
+				machine.change('parent', function() {
+					order.should.eql(expectOrder);
+					done();
+				});
+			});
+		});
+
 		it('should do nothing when changing to an already active state', function(done) {
 			var blur = 0;
 			var focus = 0;
