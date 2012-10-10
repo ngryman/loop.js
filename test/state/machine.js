@@ -6,6 +6,7 @@ var should = chai.should();
 var Machine = require('../../lib').Machine;
 var State = require('../../lib').State;
 var Transition = require('../../lib').Transition;
+var Ease = require('../../lib').Ease;
 
 describe('Machine', function() {
 	describe('#push', function() {
@@ -35,11 +36,12 @@ describe('Machine', function() {
 			machine.push('test', 'linear');
 			machine._states.should.have.deep.property('test.state').be.instanceof(State);
 			machine._states.test.trans.should.be.instanceof(Transition);
+			machine._states.test.trans.should.have.property('easing', Ease.linear);
 		});
 
 		it('should push a new state given its name and a transition description', function() {
 			var machine = new Machine();
-			machine.push('test', 'linear', { from: 42, to: 1337, duration: 666 });
+			machine.push('test', { from: 42, to: 1337, duration: 666 });
 			machine._states.test.trans.should.be.instanceof(Transition);
 			machine._states.test.trans.should.have.property('from', 42);
 			machine._states.test.trans.should.have.property('to', 1337);
@@ -53,12 +55,6 @@ describe('Machine', function() {
 //			machine.push('test', transition);
 //			machine._states.test.trans.should.have.property('to', 42);
 //		});
-
-		it('should push a new state without transition given its name and a invalid transition name', function() {
-			var machine = new Machine();
-			machine.push('test', 'wombat');
-			should.not.exist(machine._states.test.trans);
-		});
 
 		it('should push a new parent and then a child state given a state compound name', function() {
 			var machine = new Machine();
@@ -99,7 +95,7 @@ describe('Machine', function() {
 
 		it('should copy parent transition', function() {
 			var machine = new Machine();
-			machine.push('parent:child', 'linear', { from: 1337 });
+			machine.push('parent:child', { from: 1337 });
 			machine._states.should.have.deep.property('parent.trans.from', 1337);
 			machine._states.should.have.deep.property('parent:child.trans.from', 1337);
 		});
@@ -372,7 +368,7 @@ describe('Machine', function() {
 		it('should reverse transition correctly when changing multiple times', function(done) {
 			var machine = new Machine();
 			var values = [], changeNb = 0;
-			machine.push('test', 'linear', { duration: 25 });
+			machine.push('test', { duration: 25 });
 			machine.push('test2');
 			machine.get('test').transition = function(value) {
 				if (undefined === values[changeNb]) values[changeNb] = value;

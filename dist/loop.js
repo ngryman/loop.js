@@ -394,6 +394,7 @@ process.binding = function (name) {
 require.define("/lib/application.js",function(require,module,exports,__dirname,__filename,process,global){var Machine = require('./state/machine').Machine;
 var Loop = require('./loop').Loop;
 var Cycle = require('./loop/cycle').Cycle;
+var util = require('./util');
 
 /**
  * ## *constructor*
@@ -411,8 +412,7 @@ var Application = function() {
 	this._loop = new Loop();
 	this._loop.add(cycle);
 };
-Application.prototype = new Machine();
-Application.prototype.constructor = Application;
+util.inherits(Application, Machine);
 
 /**
  * ## *init*
@@ -546,7 +546,9 @@ Application.prototype.abort = function() {
  * @private
  */
 Application.prototype._tick = function(time) {
-	this.fire('tick', time);
+	if (this._current) {
+		this._fire(this._current.state, 'tick', time);
+	}
 };
 
 /** **exports** */
@@ -559,6 +561,7 @@ var State = require('../state').State;
 var Loop = require('../loop').Loop;
 var Transition = require('../transition').Transition;
 var Ease = require('../loop/ease').Ease;
+var util = require('../util');
 
 var defaults = {
 	separator: ':'
@@ -603,44 +606,41 @@ var Machine = function(options) {
  * @param state
  * @return {Machine}
  */
-Machine.prototype.push = function(name, state, trans0, topts) {
-	var tklass;
-
+Machine.prototype.push = function(name, state, trans) {
 	if (this._states[name] || undefined == name) return this;
 
 	if (state && !(state instanceof State)) {
-		topts = trans0;
-		trans0 = state;
+		trans = state;
 		state = null;
 	}
 
-	topts = topts || {};
-
-	if (trans0) {
-		if (!(trans0 instanceof Transition)) {
-			try {
-				var tname = trans0;
-
-				// ease name, instantiate a simple transition class with given easing
-				if (tname in Ease) {
-					topts.easing = tname;
-					tklass = Transition;
-				}
-				// other name, try to instantiate the given class name
-				else {
-					var kname = tname[0].toUpperCase() + tname.slice(1).toLowerCase();
-					tklass = require(tname)[kname];
-				}
-			}
-			catch (err) {
-				trans0 = null;
-			}
-		}
-		else {
-			tklass = trans0.constructor;
-			topts = trans0;
-		}
-	}
+//	topts = topts || {};
+//
+//	if (trans0) {
+//		if (!(trans0 instanceof Transition)) {
+//			try {
+//				var tname = trans0;
+//
+//				// ease name, instantiate a simple transition class with given easing
+//				if (tname in Ease) {
+//					topts.easing = tname;
+//					tklass = Transition;
+//				}
+//				// other name, try to instantiate the given class name
+//				else {
+//					var kname = tname[0].toUpperCase() + tname.slice(1).toLowerCase();
+//					tklass = require(tname)[kname];
+//				}
+//			}
+//			catch (err) {
+//				trans0 = null;
+//			}
+//		}
+//		else {
+//			tklass = trans0.constructor;
+//			topts = trans0;
+//		}
+//	}
 
 	var names = name.split(this._options.separator);
 	name = names.shift();
@@ -649,11 +649,11 @@ Machine.prototype.push = function(name, state, trans0, topts) {
 	// TODO: from child to parent
 	// for each state, add to states, link to the previous one child
 	// if a state already exist, just link to the previous one child
-	var parent = this._pushEntry(root, null, state, tklass, topts);
+	var parent = this._pushEntry(root, null, names.length == 0 ? state : null, trans);
 	while (names.length) {
 		name = name + this._options.separator + names.shift();
 		if (this._states[name]) break;
-		parent = this._pushEntry(name, parent);
+		parent = this._pushEntry(name, parent, names.length == 0 ? state : null);
 	}
 
 	// TODO: rename this, move to application as it is only used there?
@@ -689,75 +689,85 @@ Machine.prototype.change = function(name, callback) {
 		self = this,
 		e, i, len;
 
+	// states to exit
 	if (this._current) {
 		e = this._current;
 
+		// if trying to change to the same state, do nothing
 		if (e === this._states[name]) {
-			if ('function' == typeof callback) callback();
+			if ('function' == typeof callback) callback.call(e.state);
 			return this;
 		}
 
+		// builds the list of states to exit
 		while (e) {
 			toexit.push(e);
 			e = e.parent;
 		}
-		toexit.reverse();
 	}
 
+	// builds the list of states to enter
 	e = this._states[name];
 	while (e) {
 		toenter.push(e);
 		e = e.parent;
 	}
+
+	// enter form parent to children
 	toenter.reverse();
 
+	// queue of events to call for each affected state
 	if (toexit.length > 0) {
-		if (toenter.length > toexit.length) {
+		// remove states that will be exited and entered as their state will not change
+		// we first reverse states to enter and exit and remove duplicates (common parents)
+		toexit.reverse();
+//		if (toenter.length > toexit.length) {
 			while (toenter[0] === toexit[0]) {
 				toenter.shift();
 				toexit.shift();
 			}
+//		}
+
+		// exit from children to parent
+		toexit.reverse();
+
+		// first blur the current state
+		if (this._current) {
+			tochange.push(function(cb) {
+				self._fire(self._current.state, 'blur');
+				cb();
+			});
 		}
+
+		// then exit all its remaining parents
 		for (i = 0, len = toexit.length; i < len; i++) {
 			e = toexit[i];
 			tochange.push((function(e) {
 				return function(cb) {
-					return self._exit(e, cb);
+					self._exit(e, cb);
 				};
 			})(e));
 		}
 	}
 
+	// and finally enter the new hierarchy
+	// reverse states to exit (
 	for (i = 0, len = toenter.length; i < len; i++) {
 		e = toenter[i];
 		tochange.push((function(e) {
 			return function(cb) {
-				return self._enter(e, cb);
+				self._enter(e, cb);
 			};
 		})(e));
 	}
 
+	// runs all transitions in parallel
 	async.parallel(tochange, function() {
-		if (self._current) self._current.state.blur();
-		self._current = toenter[toenter.length - 1];
-		self._current.state.focus();
-		if ('function' == typeof callback) callback();
+		self._current = self._states[name];
+		self._fire(self._current.state, 'focus');
+		if ('function' == typeof callback) callback.call(self._current.state);
 	});
 
-	return this;
-};
-
-/**
- * ## *fire*
- *
- * @param event
- * @return {Machine}
- */
-Machine.prototype.fire = function(event) {
-	if (!this._current) return this;
-
-	var args = Array.prototype.slice.call(arguments, 1);
-	this._current.state[event].apply(this._current.state, args);
 	return this;
 };
 
@@ -765,6 +775,18 @@ Machine.prototype.fire = function(event) {
  * **internal sugar**
  * - - - - - - - - -
  */
+
+/**
+ * ## *fire*
+ *
+ * @param event
+ * @return {Machine}
+ */
+Machine.prototype._fire = function(state, event) {
+	var args = Array.prototype.slice.call(arguments, 1);
+	state[event].apply(state, args);
+	return this;
+};
 
 /**
  * ## *_pushEntry*
@@ -777,17 +799,16 @@ Machine.prototype.fire = function(event) {
  * @return {Machine}
  * @private
  */
-Machine.prototype._pushEntry = function(name, parent, state, transConstructor, transOptions) {
+Machine.prototype._pushEntry = function(name, parent, state, trans) {
 	if (this._states[name]) return this._states[name];
 
 	state = state || new State();
 
-	var trans;
 	if (parent) {
 		trans = parent.trans;
 	}
-	else if (transConstructor) {
-		trans = new transConstructor(state, transOptions);
+	else if (trans) {
+		trans = util.createFlexibleObject(Transition, trans, 'easing', Ease, state);
 	}
 
 	// creates & starts transition loop on the fly
@@ -801,12 +822,10 @@ Machine.prototype._pushEntry = function(name, parent, state, transConstructor, t
 		state: state,
 		trans: trans,
 		activated: 0,
-		parent: parent,
-		stack: {}
+		parent: parent
 	};
 
 	this._states[name] = entry;
-	if (parent) entry.parent.stack[name] = entry;
 
 	return entry;
 };
@@ -819,16 +838,18 @@ Machine.prototype._pushEntry = function(name, parent, state, transConstructor, t
  * @private
  */
 Machine.prototype._enter = function(entry, cb) {
+	var self = this;
+
 	// initialize if this is the first time state is entered
 	if (!entry.init) {
 		entry.init = true;
-		entry.state.init();
+		this._fire(entry.state, 'init');
 	}
 
 	var cbw = function() {
 		entry.activated++;
 		entry.active = true;
-		entry.state.enter();
+		self._fire(entry.state, 'enter');
 		cb();
 	};
 
@@ -849,9 +870,11 @@ Machine.prototype._enter = function(entry, cb) {
  * @private
  */
 Machine.prototype._exit = function(entry, cb) {
+	var self = this;
+
 	var cbw = function() {
 		entry.active = false;
-		entry.state.exit();
+		self._fire(entry.state, 'exit');
 		cb();
 	};
 
@@ -1786,6 +1809,7 @@ window.performance = (function() {
 });
 
 require.define("/lib/transition.js",function(require,module,exports,__dirname,__filename,process,global){var Tween = require('./loop/tween').Tween;
+var util = require('./util');
 
 /**
  * ## *constructor*
@@ -1797,8 +1821,7 @@ var Transition = function(state, options) {
 	options = options || {};
 	Tween.prototype.constructor.call(this, state, 'transition', options.from, options.to, options.duration, options.easing);
 };
-Transition.prototype = new Tween();
-Transition.prototype.constructor = Transition;
+util.inherits(Transition, Tween);
 
 /**
  * **internal sugar**
@@ -1812,6 +1835,7 @@ module.exports.Transition = Transition;
 
 require.define("/lib/loop/tween.js",function(require,module,exports,__dirname,__filename,process,global){var Cycle = require('./cycle').Cycle;
 var Ease = require('./ease').Ease;
+var util = require('./../util');
 
 /**
  * ## *constructor*
@@ -1844,8 +1868,7 @@ var Tween = function(obj, properties, from, to, duration, easing) {
 	this.duration = undefined != duration ? duration : 400;
 	this._obj = obj;
 };
-Tween.prototype = new Cycle();
-Tween.prototype.constructor = Tween;
+util.inherits(Tween, Cycle);
 
 /**
  * ## *start*
@@ -2248,12 +2271,74 @@ module.exports.Ease = Ease;
 
 });
 
+require.define("/lib/util.js",function(require,module,exports,__dirname,__filename,process,global){var util = module.exports = {};
+
+// from nodejs implementation
+util.inherits = function(ctor, superCtor) {
+	ctor.super_ = superCtor;
+	ctor.prototype = Object.create(superCtor.prototype, {
+		constructor: {
+			value: ctor,
+			enumerable: false,
+			writable: true,
+			configurable: true
+		}
+	});
+};
+
+util.createFlexibleObject = (function() {
+	var global = global || window;
+
+	return function(ctor, param, keyProp, keyEnum) {
+		var args, opts;
+
+		// if obj is already an instance of constructor, return it
+		if (param instanceof ctor) {
+			return param;
+		}
+
+		// isolate constructor arguments
+		args = Array.prototype.slice.call(arguments, 4);
+
+		// obj is a string,
+		if ('string' == typeof param) {
+			// build options with keyProp and param as a value
+			if (keyEnum && param in keyEnum) {
+				opts = {};
+				opts[keyProp] = param;
+			}
+			// instantiate with the given class name
+			else {
+				var kname = param[0].toUpperCase() + param.slice(1);
+				ctor = global[kname];
+			}
+		}
+		else if ('object' == typeof param) {
+			opts = param;
+		}
+		else {
+			return undefined;
+		}
+
+		// push options
+		args.push(opts);
+
+		// instantiate!
+		var inst = {};
+		inst.__proto__ = ctor.prototype;
+		ctor.apply(inst, args);
+		return inst;
+	};
+})();
+
+});
+
 require.define("/lib/index.js",function(require,module,exports,__dirname,__filename,process,global){/**
  * **loop.js**
  */
 
 /** **exports** */
-module.exports = {
+var loop = module.exports = {
 	Application: require('./application').Application,
 	State: require('./state').State,
 	Machine: require('./state/machine').Machine,
@@ -2261,8 +2346,26 @@ module.exports = {
 	Loop: require('./loop').Loop,
 	Cycle: require('./loop/cycle').Cycle,
 	Ease: require('./loop/ease').Ease,
-	Tween: require('./loop/tween').Tween
+	Tween: require('./loop/tween').Tween,
+	util: require('./util')
 };
+
+/**
+ *
+ * @param target
+ */
+loop.scope = function(target) {
+	for (var p in this) {
+		if (this.hasOwnProperty(p)) {
+			target[p] = this[p];
+		}
+	}
+};
+
+/** for the browser */
+if (window) {
+	window.loop = loop;
+}
 
 });
 require("/lib/index.js");

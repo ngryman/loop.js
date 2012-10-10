@@ -34,8 +34,8 @@ namespace('build', function() {
 	});
 
 	task('test', ['build:dev'], function() {
-		// todo: auto discovery
-		var files = ('test/loop/tween.js test/state/machine.js test/application.js test/loop.js').split(' '),
+		// todo: auto discovery, use of index.js?
+		var files = ('test/loop/tween.js test/state/machine.js test/application.js test/loop.js test/util.js').split(' '),
 			output = path.join(__dirname, 'test/browser/all-tests.js');
 
 		if (fs.existsSync(output)) fs.unlinkSync(output);

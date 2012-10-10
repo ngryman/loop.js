@@ -17,7 +17,11 @@
 <script src="../../node_modules/mocha/mocha.js"></script>
 <script src="../../node_modules/chai/chai.js"></script>
 <script src="../../dist/loop.js"></script>
-<script>mocha.setup('bdd')</script>
+<script>mocha.setup({
+	ui: 'bdd',
+	ignoreLeaks: true
+});
+</script>
 <script src="all-tests.js"></script>
 <script>
 	mocha.run();

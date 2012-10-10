@@ -53,7 +53,7 @@ describe('Tween', function() {
 			new Tween();
 		});
 
-		it('should accept a custom tweening funciton', function() {
+		it('should accept a custom tweening function', function() {
 			var tween = new Tween(tweenable, 'opacity', 0, 1, 400, function() {});
 		});
 	});
@@ -244,6 +244,7 @@ var should = chai.should();
 var Machine = require('../../lib').Machine;
 var State = require('../../lib').State;
 var Transition = require('../../lib').Transition;
+var Ease = require('../../lib').Ease;
 
 describe('Machine', function() {
 	describe('#push', function() {
@@ -273,11 +274,12 @@ describe('Machine', function() {
 			machine.push('test', 'linear');
 			machine._states.should.have.deep.property('test.state').be.instanceof(State);
 			machine._states.test.trans.should.be.instanceof(Transition);
+			machine._states.test.trans.should.have.property('easing', Ease.linear);
 		});
 
 		it('should push a new state given its name and a transition description', function() {
 			var machine = new Machine();
-			machine.push('test', 'linear', { from: 42, to: 1337, duration: 666 });
+			machine.push('test', { from: 42, to: 1337, duration: 666 });
 			machine._states.test.trans.should.be.instanceof(Transition);
 			machine._states.test.trans.should.have.property('from', 42);
 			machine._states.test.trans.should.have.property('to', 1337);
@@ -291,12 +293,6 @@ describe('Machine', function() {
 //			machine.push('test', transition);
 //			machine._states.test.trans.should.have.property('to', 42);
 //		});
-
-		it('should push a new state without transition given its name and a invalid transition name', function() {
-			var machine = new Machine();
-			machine.push('test', 'wombat');
-			should.not.exist(machine._states.test.trans);
-		});
 
 		it('should push a new parent and then a child state given a state compound name', function() {
 			var machine = new Machine();
@@ -337,7 +333,7 @@ describe('Machine', function() {
 
 		it('should copy parent transition', function() {
 			var machine = new Machine();
-			machine.push('parent:child', 'linear', { from: 1337 });
+			machine.push('parent:child', { from: 1337 });
 			machine._states.should.have.deep.property('parent.trans.from', 1337);
 			machine._states.should.have.deep.property('parent:child.trans.from', 1337);
 		});
@@ -440,9 +436,15 @@ describe('Machine', function() {
 
 		it('should call enter/exit events when changing states', function(done) {
 			var count = 0;
-			var cb = function() {
+			var cb = function(event) {
 				count++;
-				if (count == 2) done();
+				if (count == 1) {
+					event.should.eql('exit');
+				}
+				if (count == 2) {
+					event.should.eql('enter');
+					done();
+				}
 			};
 			var machine = new Machine();
 			machine.push('test');
@@ -466,9 +468,15 @@ describe('Machine', function() {
 
 		it('should call focus/blur event when changing states', function(done) {
 			var count = 0;
-			var cb = function() {
+			var cb = function(event) {
 				count++;
-				if (count == 2) done();
+				if (count == 1) {
+					event.should.eql('blur');
+				}
+				if (count == 2) {
+					event.should.eql('focus');
+					done();
+				}
 			};
 			var machine = new Machine();
 			machine.push('test');
@@ -513,6 +521,54 @@ describe('Machine', function() {
 			});
 		});
 
+		it('should call enter/exit and focus/blur in the correct order', function(done) {
+			var expectOrder = 'state1#enter state1#focus state1#blur state1#exit state2#enter state2#focus ';
+			var order = '';
+			var state1 = new State();
+			state1.enter = function() { order += 'state1#enter ' };
+			state1.exit = function() { order += 'state1#exit ' };
+			state1.focus = function() { order += 'state1#focus ' };
+			state1.blur = function() { order += 'state1#blur ' };
+			var state2 = new State();
+			state2.enter = function() { order += 'state2#enter ' };
+			state2.exit = function() { order += 'state2#exit ' };
+			state2.focus = function() { order += 'state2#focus ' };
+			state2.blur = function() { order += 'state2#blur ' };
+			var machine = new Machine();
+			machine.push('state1', state1);
+			machine.push('state2', state2);
+			machine.change('state1', function() {
+				machine.change('state2', function() {
+					order.should.eql(expectOrder);
+					done();
+				});
+			});
+		});
+
+		it('should not call exit/enter when a child give the focus to its parent', function(done) {
+			var expectOrder = 'parent#enter parent:child#enter parent:child#focus parent:child#blur parent:child#exit parent#focus ';
+			var order = '';
+			var parent = new State();
+			parent.enter = function() { order += 'parent#enter ' };
+			parent.exit = function() { order += 'parent#exit ' };
+			parent.focus = function() { order += 'parent#focus ' };
+			parent.blur = function() { order += 'parent#blur ' };
+			var child = new State();
+			child.enter = function() { order += 'parent:child#enter ' };
+			child.exit = function() { order += 'parent:child#exit ' };
+			child.focus = function() { order += 'parent:child#focus ' };
+			child.blur = function() { order += 'parent:child#blur ' };
+			var machine = new Machine();
+			machine.push('parent', parent);
+			machine.push('parent:child', child);
+			machine.change('parent:child', function() {
+				machine.change('parent', function() {
+					order.should.eql(expectOrder);
+					done();
+				});
+			});
+		});
+
 		it('should do nothing when changing to an already active state', function(done) {
 			var blur = 0;
 			var focus = 0;
@@ -550,7 +606,7 @@ describe('Machine', function() {
 		it('should reverse transition correctly when changing multiple times', function(done) {
 			var machine = new Machine();
 			var values = [], changeNb = 0;
-			machine.push('test', 'linear', { duration: 25 });
+			machine.push('test', { duration: 25 });
 			machine.push('test2');
 			machine.get('test').transition = function(value) {
 				if (undefined === values[changeNb]) values[changeNb] = value;
@@ -578,23 +634,26 @@ describe('Machine', function() {
 				});
 			});
 		});
+
+		it('should call the callback with the new active state as context', function() {
+			var machine = new Machine();
+			var state = new State();
+			machine.push('test', state);
+			machine.change('test', function() {
+				this.should.be.eql(state);
+			});
+		});
 	});
 
-	describe('#fire', function() {
-		it('should fire current state event given a event name', function(done) {
+	describe('should fire', function() {
+		it('state event given a event name', function(done) {
 			var machine = new Machine();
 			var state = new State();
 			state.pause = function() { done() };
 			machine.push('test', state);
 			machine.change('test', function() {
-				machine.fire('pause');
+				machine._fire(this, 'pause');
 			});
-		});
-
-		it('should do nothing when there is no current state', function() {
-			var machine = new Machine();
-			machine.push('test');
-			machine.fire('init');
 		});
 
 		it('should fire current state with itself as context', function(done) {
@@ -606,14 +665,8 @@ describe('Machine', function() {
 			};
 			machine.push('test', state);
 			machine.change('test', function() {
-				machine.fire('pause');
+				machine._fire(this, 'pause');
 			});
-		});
-
-		it('should do nothing when the event is unknown', function() {
-			var machine = new Machine();
-			machine.push('test');
-			machine.fire('42');
 		});
 	});
 });
@@ -666,6 +719,15 @@ describe('Application', function() {
 			shared._states.test.state.should.have.deep.property('init', delegate);
 			shared._states.test.state.should.have.deep.property('cleanup', delegate);
 		});
+
+		it('should pass the event name as argument', function(done) {
+			var app = new Application();
+			app.when('enter exit', 'test', function(event) {
+				event.should.eql('enter');
+				done();
+			});
+			app.change('test');
+		});
 	});
 
 	describe('#loop', function() {
@@ -680,7 +742,7 @@ describe('Application', function() {
 
 		it('should launch the game loop using the first registered state and invoking its tick event', function(done) {
 			var app = new Application();
-			app.tick('test',function() {
+			app.tick('test', function() {
 				app.abort();
 				done();
 			}).loop();
@@ -688,7 +750,7 @@ describe('Application', function() {
 
 		it('should pass time information to a tick event', function(done) {
 			var app = new Application();
-			app.tick('test',function(time) {
+			app.tick('test', function(event, time) {
 				app.abort();
 				time.should.not.be.undefined;
 				time.should.have.property('now');
@@ -702,7 +764,7 @@ describe('Application', function() {
 		it('should pass valid time information at the first frame', function(done) {
 			var app = new Application();
 			var now = +Date.now();
-			app.tick('test',function(time) {
+			app.tick('test', function(event, time) {
 				app.abort();
 				time.should.have.property('now').closeTo(now, 100);
 				time.should.have.property('delta', 0);
@@ -713,7 +775,7 @@ describe('Application', function() {
 
 		it('should increment frames', function(done) {
 			var app = new Application();
-			app.tick('test',function(time) {
+			app.tick('test', function(event, time) {
 				if (3 == time.frame) {
 					app.abort();
 					done();
@@ -866,5 +928,66 @@ describe('Loop', function() {
 		};
 		loop.start();
 		loop.add(cycle);
+	});
+});
+var chai = chai || require('chai');
+global.window = undefined == typeof window ? window : global;
+
+var should = chai.should();
+
+var loop = require('../lib');
+var util = loop.util;
+var Transition = loop.Transition;
+var State = loop.State;
+var Ease = loop.Ease;
+
+describe('util', function() {
+	describe('.createFlexibleObject', function() {
+		it('should do nothing when param is not defined', function() {
+			should.not.exist(util.createFlexibleObject(Transition));
+		});
+
+		it('should return the same instance as param', function() {
+			var param = new Transition();
+			var inst = util.createFlexibleObject(Transition, param);
+			inst.should.be.eql(param);
+		});
+
+		it('should create a valid instance when param is a string', function() {
+			var state = new State();
+			var inst = util.createFlexibleObject(Transition, 'inOut', 'easing', Ease, state);
+			inst.should.be.instanceof(Transition);
+			inst.should.have.property('_obj', state);
+			inst.should.have.property('easing', Ease.inOut);
+		});
+
+		it('should create a valid instance when param is a plain object', function() {
+			var state = new State();
+			var inst = util.createFlexibleObject(Transition, {
+				easing: 'in',
+				to: 1337,
+				duration: 42
+			}, null, null, state);
+			inst.should.be.instanceof(Transition);
+			inst.should.have.property('_obj', state);
+			inst.should.have.property('easing', Ease.in);
+			inst.should.have.property('to', 1337);
+			inst.should.have.property('duration', 42);
+		});
+
+		it('should create a valid instance param is a string and the name of a class', function() {
+			global.SpecialTransition = function() {
+				Transition.prototype.constructor.apply(this, arguments);
+			};
+			util.inherits(SpecialTransition, Transition);
+
+			var state = new State();
+			var inst = util.createFlexibleObject(Transition, 'specialTransition', null, null, state);
+			inst.should.be.instanceof(Transition);
+			inst.should.be.instanceof(global.SpecialTransition);
+			inst.should.have.property('_obj', state);
+
+			delete global.SpecialTransition;
+		});
 	});
 });
