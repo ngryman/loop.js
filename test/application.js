@@ -5,6 +5,7 @@ var should = chai.should();
 
 var Application = require('../lib').Application;
 var State = require('../lib').State;
+var Transition = require('../lib').Transition;
 
 describe('Application', function() {
 	var shared = new Application();
@@ -55,6 +56,29 @@ describe('Application', function() {
 				done();
 			});
 			app.change('test');
+		});
+
+		it('should accept additional transition parameter for transition', function() {
+			var app = new Application();
+			var called = 0;
+			app.when('transition', 'test', function() { called++ }, 'inOut');
+			app._states.test.trans.should.be.instanceof(Transition);
+		});
+
+		it('should pass the from value at the first call of transition event', function(done) {
+			var called = true;
+			var app = new Application();
+			app.init('state1', function() {})
+			.when('enter exit', 'state1', function() {})
+			.when('focus blur', 'state1', function() {})
+			.transition('state1', function(event, value) {
+				if (called) return;
+				called = true;
+				value.should.eql(0);
+			}, 'out');
+			app.init('state2', function() {})
+			.when('enter exit', 'state2', function() {}).when('focus blur', 'state2', function() {});
+			app.change('state1', done);
 		});
 	});
 

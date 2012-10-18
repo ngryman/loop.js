@@ -354,8 +354,8 @@ describe('Machine', function() {
 		it('should apply a transition when changing', function(done) {
 			var machine = new Machine();
 			var called = 0;
-			machine.push('test', 'linear', { duration: 25 });
-			machine.get('test').transition = function(value) {
+			machine.push('test', { duration: 25 });
+			machine.get('test').transition = function(event, value) {
 				if (0 == called) value.should.eql(0);
 				called++;
 			};
@@ -370,7 +370,7 @@ describe('Machine', function() {
 			var values = [], changeNb = 0;
 			machine.push('test', { duration: 25 });
 			machine.push('test2');
-			machine.get('test').transition = function(value) {
+			machine.get('test').transition = function(event, value) {
 				if (undefined === values[changeNb]) values[changeNb] = value;
 			};
 			machine.change('test', function() {
