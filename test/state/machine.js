@@ -405,6 +405,33 @@ describe('Machine', function() {
 				this.should.be.eql(state);
 			});
 		});
+
+		it('should call enter, transition, focus and blur, transition, exit', function(done) {
+			var expectOrder = 'state1#enter state1#transition state1#focus state1#blur state1#transition state2#enter state1#transition state1#exit state2#focus ';
+			var order = '';
+			var state1 = new State();
+			state1.enter = function() { order += 'state1#enter ' };
+			state1.exit = function() { order += 'state1#exit ' };
+			state1.focus = function() { order += 'state1#focus ' };
+			state1.blur = function() { order += 'state1#blur ' };
+			state1.transition = function() { order += 'state1#transition ' };
+			var state2 = new State();
+			state2.enter = function() { order += 'state2#enter ' };
+			state2.exit = function() { order += 'state2#exit ' };
+			state2.focus = function() { order += 'state2#focus ' };
+			state2.blur = function() { order += 'state2#blur ' };
+			var machine = new Machine();
+			machine.push('state1', state1, { duration: 25 });
+			machine.push('state2', state2, { duration: 25 });
+			machine.change('state1', function() {
+				machine.change('state2', function() {
+					// ensure we have only one occurence of state1#transition (it depends of the test env.)
+					order = order.replace(/(state1#transition )*/g, '$1');
+					order.should.eql(expectOrder);
+					done();
+				});
+			});
+		});
 	});
 
 	describe('should fire', function() {
