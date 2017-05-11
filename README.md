@@ -1,6 +1,8 @@
 loop.js
 =======
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/ngryman/loop.js.svg)](https://greenkeeper.io/)
+
 [![Build Status](https://secure.travis-ci.org/ngryman/loop.js.png)](http://travis-ci.org/ngryman/loop.js?branch=master)
 
 HTML5 game ecosystem.
